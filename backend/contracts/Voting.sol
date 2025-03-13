@@ -16,7 +16,7 @@ contract Voting {
     mapping(uint => Vote) votes;
     mapping(address => bool) members;
 
-    event MemberJoimed(
+    event MemberJoined(
         address indexed member, 
         uint joinedAt
     );
@@ -56,7 +56,7 @@ contract Voting {
         
         members[msg.sender] = true;
         
-        emit MemberJoimed(
+        emit MemberJoined(
             msg.sender, 
             block.timestamp
         );

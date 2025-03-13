@@ -1,0 +1,16 @@
+{
+  "Contract": {
+    "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    "signerAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "abi": [
+      "event MemberJoined(address indexed,uint256)",
+      "event VoteCreated(address indexed,uint256 indexed,uint256,uint256)",
+      "event Voted(address indexed,uint256 indexed,uint256 indexed,uint256)",
+      "function createVote(string,uint256,uint256)",
+      "function didVote(address,uint256) view returns (bool)",
+      "function getVote(uint256) view returns (string,address,uint256[],uint256)",
+      "function join()",
+      "function vote(uint256,uint256)"
+    ]
+  }
+}
