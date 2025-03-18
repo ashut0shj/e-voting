@@ -6,6 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
 import {connect, getContract} from "./contract";
 
+console.log("Nappr Component Loaded");
 
 function App() {
 
@@ -40,10 +41,39 @@ function App() {
      }
   }
 
+const connectCallback =  async () => {
+  const {contract} = await connect();
+  setContract(contract);
+  if (contract){
+    setConnected(true);
+  }
+};
+
+const becomeMember = async () => {
+  if (!contract){
+    alert("Connect to the Metamask first");
+    return ;
+  }
+
+  await contract.join().then(() => {
+    alert("Joined");
+    setIsMember(true);
+  }).catch((error) => {
+    alert(error.message);
+  });
+
+};
+
+
+
   return (
     <div className="App">
       <Router> 
-        <NavBar />
+        <NavBar connect = {connectCallback} 
+                connected = {connected} 
+                becomeMember = {becomeMember} 
+                isMember = {isMember} />
+
         <div className="container">
           <Routes>
             <Route path="/create-vote" element={<CreateVotes />} />
