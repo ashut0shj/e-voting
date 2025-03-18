@@ -14,7 +14,7 @@ contract Voting {
     }
 
     mapping(uint => Vote) votes;
-    mapping(address => bool) members;
+    mapping(address => bool) public members;
 
     event MemberJoined(
         address indexed member, 
