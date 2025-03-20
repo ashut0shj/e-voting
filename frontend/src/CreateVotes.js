@@ -1,66 +1,70 @@
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Button}  from "react-bootstrap";
+import From from "react-bootstrap/Form";
 import { useState } from "react";
-import { Container, Form, Button, Card } from "react-bootstrap";
-import "./CreateVote.css";
-const CreateVotes = () => {
-  const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState("");
-  const [option1, setOption1] = useState("");
-  const [option2, setOption2] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert(`Vote Created: ${title}`);
+const CreateVotes = ({contract}) => {
+  const [uri, setUri] = useState("");
+  const [options, setOptions] = useState(2);
+  const [endDate, setEndDate] = useState("");
+
+  const createVote = async () => {
+    if(!contract){
+      alert("Please connect to the Metamask first");
+      return;
+    }
+
+    await contract
+    .createVote(uri,  new Date(endDate).getTime(), options)
+    .then(() => alert("Success"))
+    .catch((e) => alert(e.message));
   };
 
-  return (
-    <div className="crazy-vote-page">
-      <Container className="d-flex flex-column align-items-center justify-content-center">
-        <Card className="vote-card text-white text-center p-4">
-          <h2 className="vote-title">🚀 Create a Crazy Vote! 🎉</h2>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="text"
-                placeholder="Enter Vote Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="vote-input"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="number"
-                placeholder="Duration in Days"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="vote-input"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="text"
-                placeholder="Option 1"
-                value={option1}
-                onChange={(e) => setOption1(e.target.value)}
-                className="vote-input"
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Control
-                type="text"
-                placeholder="Option 2"
-                value={option2}
-                onChange={(e) => setOption2(e.target.value)}
-                className="vote-input"
-              />
-            </Form.Group>
-            <Button type="submit" className="vote-btn">🔥 Create Vote 🔥</Button>
-          </Form>
-        </Card>
-      </Container>
-    </div>
+
+  return(
+  <From className="m-2">
+    <h2 className="d-flex justify-content-center">Create a Vote</h2>
+    <From.Group className="m-2">
+      <From.Label>IPFS URI</From.Label>
+      <From.Control 
+        type="text" 
+        name="uri" 
+        value={uri}
+        placeholder="IPFS URI"
+        onChange={(e) => setUri(e.target.value)} 
+      />
+    </From.Group>
+
+    <From.Group className="m-2">
+      <From.Label>Number of options</From.Label>
+      <From.Control 
+        type="number" 
+        min={2}
+        max={8}
+        name="options" 
+        value={options}
+        onChange={(e) => setOptions(e.target.value)} 
+      />
+    </From.Group>
+
+    <From.Group className="m-2">
+      <From.Label>End Date</From.Label>
+      <From.Control 
+        type="date" 
+        name="endDate" 
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)} 
+      />
+    </From.Group>
+
+    <From.Group className="m-2 mt-4">
+      <Button 
+        variant="success" 
+        onClick={createVote}>Create</Button>
+    </From.Group>
+  </From>
+
   );
+
 };
 
 export default CreateVotes;

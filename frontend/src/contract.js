@@ -10,6 +10,7 @@ const abi = [
     "function didVote(address,uint256) view returns (bool)",
     "function getVote(uint256) view returns (string,address,uint256[],uint256)",
     "function join()",
+    "function members(address) view returns (bool)",
     "function vote(uint256,uint256)"
   ]
 

@@ -29,7 +29,15 @@ function App() {
 
   const handleinit = () => {
      setConnected(true);
-     const [contract, signer] = getContract();
+     const [contract, signer] = getContract().then(([contract, signer]) => {
+       setContract(contract);
+       signer.getAddress().then(address => {
+         contract.member(address).then(result => {
+           setIsMember(result);
+         });
+       });
+     }
+     );
      setContract(contract);
 
      if(contract){
@@ -76,7 +84,7 @@ const becomeMember = async () => {
 
         <div className="container">
           <Routes>
-            <Route path="/create-vote" element={<CreateVotes />} />
+            <Route path="/create-vote" element={<CreateVotes  contract = {contract}/>} />
             <Route path="/votes" element={<Votes />} />
           </Routes>
         </div>
