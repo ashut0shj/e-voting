@@ -15,14 +15,23 @@ const abi = [
   ]
 
 
-  const provider = new BrowserProvider(window.ethereum);
   export const connect = async () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask");
+      throw new Error("MetaMask not found");
+    }
+  
+    const provider = new BrowserProvider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     return getContract(provider);
-};
-
-export const getContract = async (provider) => {
+  };
+  
+  // Function to get contract instance and signer
+  export const getContract = async (provider) => {
+    if (!provider) {
+      provider = new BrowserProvider(window.ethereum);
+    }
     const signer = await provider.getSigner();
     const contract = new Contract(address, abi, signer);
-    return { signer, contract };
-};
+    return [contract, signer];
+  };
