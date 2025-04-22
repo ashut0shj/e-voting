@@ -1,18 +1,10 @@
-{{
-    "description": "what is the best breakfast",
-    "options": [
-        "Bread",
-        "Eggs",
-        "Poha",
-        "Fruit"
-    ]
-}
 {
-    "description": "what is the best food",
+    "description": "how will i live?",
     "options": [
-        "rice",
-        "juice",
-        "Poha",
-        "egg"
+      "i won’t",
+      "ice cream",
+      "nahhh",
+      "mehhh"
     ]
-}}
+  }
+  

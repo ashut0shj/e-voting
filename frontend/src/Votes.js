@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Button, Card, ListGroup, Alert, Spinner } from "react-bootstrap";
+import { Button, Card, ListGroup, Alert, Spinner, ProgressBar } from "react-bootstrap";
 import { AppContext } from "./App";
 
 const Votes = () => {
@@ -8,6 +8,7 @@ const Votes = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [votingInProgress, setVotingInProgress] = useState({});
+  const [timeRemaining, setTimeRemaining] = useState({});
 
   // Helper function to fetch data from IPFS
   const fetchIPFSData = async (uri) => {
@@ -36,6 +37,62 @@ const Votes = () => {
       return null;
     }
   };
+
+  // Format date as string showing time remaining
+  const formatTimeRemaining = (endTime) => {
+    const now = Date.now();
+    
+    // Check if end time is reasonable (less than 10 years in the future)
+    // This handles potential errors in timestamp conversion
+    const maxReasonableTime = now + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years in ms
+    
+    if (endTime > maxReasonableTime || endTime <= now) {
+      return { text: endTime <= now ? "Voting ended" : "Time calculation error" };
+    }
+    
+    const totalMs = endTime - now;
+    const days = Math.floor(totalMs / (1000 * 60 * 60 * 24));
+    
+    // Cap days at 999 for display purposes
+    const displayDays = Math.min(days, 999);
+    
+    const hours = Math.floor((totalMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((totalMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return { 
+      days: displayDays, 
+      hours, 
+      minutes,
+      text: displayDays > 0 
+        ? `${displayDays}d ${hours}h remaining` 
+        : hours > 0 
+          ? `${hours}h ${minutes}m remaining` 
+          : `${minutes}m remaining`
+    };
+  };
+
+  // Calculate remaining time for each active vote
+  useEffect(() => {
+    const updateAllTimeRemaining = () => {
+      const updatedTimeRemaining = {};
+      
+      votes.forEach(vote => {
+        updatedTimeRemaining[vote.id] = formatTimeRemaining(vote.endTime);
+      });
+      
+      setTimeRemaining(updatedTimeRemaining);
+    };
+    
+    // Initial calculation
+    if (votes.length > 0) {
+      updateAllTimeRemaining();
+    }
+    
+    // Set interval for updating
+    const intervalId = setInterval(updateAllTimeRemaining, 60000); // Update every minute
+    
+    return () => clearInterval(intervalId);
+  }, [votes]);
 
   // Fetch votes whenever contract or connected status changes
   useEffect(() => {
@@ -76,12 +133,25 @@ const Votes = () => {
                 console.error(`Failed to fetch IPFS data for vote ${i}:`, ipfsError);
               }
               
+              const endTimeSeconds = Number(voteData[3]);
+              
+              // Validate end time - ensure it's a reasonable timestamp
+              // If timestamp appears to be too large, try to interpret it differently
+              let endTimeMs;
+              
+              if (endTimeSeconds > 253402300800) { // Beyond year 9999
+                console.warn(`End time for vote ${i} seems invalid: ${endTimeSeconds}`);
+                endTimeMs = Date.now() + (7 * 24 * 60 * 60 * 1000); // Default to 7 days from now
+              } else {
+                endTimeMs = endTimeSeconds * 1000; // Convert to milliseconds
+              }
+              
               votesData.push({
                 id: i,
                 uri: voteData[0],
                 owner: voteData[1],
                 votes: voteData[2].map(v => Number(v)),
-                endTime: Number(voteData[3]) * 1000, // Convert to milliseconds
+                endTime: endTimeMs,
                 hasVoted: hasVoted,
                 ipfsData: ipfsData // Add the IPFS data to the vote object
               });
@@ -179,6 +249,11 @@ const Votes = () => {
     }
   };
 
+  // Calculate total votes for a vote
+  const calculateTotalVotes = (voteArray) => {
+    return voteArray.reduce((total, count) => total + count, 0);
+  };
+
   if (!connected) {
     return (
       <div className="text-center my-5">
@@ -230,70 +305,105 @@ const Votes = () => {
       <h2 className="text-center mb-4">Available Votes</h2>
       {votes.map((vote) => {
         const votingEnded = vote.endTime < Date.now();
+        const totalVotes = calculateTotalVotes(vote.votes);
         
         return (
           <Card key={vote.id} className="mb-4">
-            <Card.Header>
-              <h5>Vote #{vote.id}</h5>
-              <small>Created by: {vote.owner}</small>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <div>
+                <h5>Vote #{vote.id}</h5>
+                <small>Created by: {vote.owner}</small>
+              </div>
+              <div className="text-end">
+                <span className={`badge ${votingEnded ? 'bg-danger' : 'bg-success'}`}>
+                  {votingEnded ? 'Voting Ended' : 'Voting Active'}
+                </span>
+                <div className="mt-1">
+                  {timeRemaining[vote.id]?.text && (
+                    <span className="badge bg-info">
+                      <i className="bi bi-clock me-1"></i>
+                      {timeRemaining[vote.id].text}
+                    </span>
+                  )}
+                </div>
+              </div>
             </Card.Header>
+            
             <Card.Body>
-              <Card.Title>
+              <Card.Title className="mb-3">
                 {vote.ipfsData && vote.ipfsData.description 
                   ? vote.ipfsData.description 
                   : `Topic: ${vote.uri}`}
               </Card.Title>
-              <Card.Text>
-                <strong>Status: </strong> 
-                {votingEnded ? 
-                  <span className="text-danger">Voting Ended</span> : 
-                  <span className="text-success">Voting Active</span>
-                }
-              </Card.Text>
-              <Card.Text>
-                <strong>Ends at:</strong> {new Date(vote.endTime).toLocaleString()}
-              </Card.Text>
+              
+              <div className="mb-3">
+                <strong>Total Votes:</strong> {totalVotes}
+              </div>
+              
               <ListGroup className="mb-3">
                 {vote.votes.map((count, index) => {
                   // Get the option text from IPFS data if available
                   const optionLabel = vote.ipfsData && vote.ipfsData.options && vote.ipfsData.options[index]
                     ? vote.ipfsData.options[index]
                     : `Option ${index + 1}`;
+                  
+                  // Calculate percentage for progress bar
+                  const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                  
+                  // Determine progress bar variant based on vote count ranking
+                  let variant = "info";
+                  if (Math.max(...vote.votes) === count && count > 0) {
+                    variant = "success"; // Leading option
+                  } else if (count === 0) {
+                    variant = "secondary"; // No votes
+                  }
                     
                   return (
-                    <ListGroup.Item 
-                      key={index}
-                      className="d-flex justify-content-between align-items-center"
-                    >
-                      <span>{optionLabel}</span>
-                      <div>
-                        <span className="badge bg-primary me-2">{count} votes</span>
-                        {!votingEnded && !vote.hasVoted && isMember && (
-                          <Button 
-                            size="sm" 
-                            variant="outline-success" 
-                            onClick={() => handleVote(vote.id, index)}
-                            disabled={votingInProgress[`${vote.id}-${index}`]}
-                          >
-                            {votingInProgress[`${vote.id}-${index}`] ? (
-                              <>
-                                <Spinner
-                                  as="span"
-                                  animation="border"
-                                  size="sm"
-                                  role="status"
-                                  aria-hidden="true"
-                                />
-                                <span className="visually-hidden">Voting...</span>
-                              </>
-                            ) : (
-                              "Vote"
-                            )}
-                          </Button>
-                        )}
-                        {vote.hasVoted && (
-                          <span className="badge bg-secondary">You voted</span>
-                        )}
+                    <ListGroup.Item key={index}>
+                      <div className="mb-1 d-flex justify-content-between">
+                        <span className="fw-bold">{optionLabel}</span>
+                        <span>{count} votes ({percentage}%)</span>
+                      </div>
+                      
+                      <div className="d-flex align-items-center">
+                        <div className="flex-grow-1 me-2">
+                          <ProgressBar 
+                            variant={variant} 
+                            now={percentage} 
+                            label={`${percentage}%`} 
+                            className="mb-2"
+                            style={{ height: '25px' }}
+                          />
+                        </div>
+                        
+                        <div>
+                          {!votingEnded && !vote.hasVoted && isMember && (
+                            <Button 
+                              size="sm" 
+                              variant="outline-success" 
+                              onClick={() => handleVote(vote.id, index)}
+                              disabled={votingInProgress[`${vote.id}-${index}`]}
+                            >
+                              {votingInProgress[`${vote.id}-${index}`] ? (
+                                <>
+                                  <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="visually-hidden">Voting...</span>
+                                </>
+                              ) : (
+                                "Vote"
+                              )}
+                            </Button>
+                          )}
+                          {vote.hasVoted && (
+                            <span className="badge bg-secondary">You voted</span>
+                          )}
+                        </div>
                       </div>
                     </ListGroup.Item>
                   );
