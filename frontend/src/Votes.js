@@ -17,10 +17,16 @@ const Votes = ({contract}) => {
         }
         const filter = contract.filters.VoteCreated();
         contract.queryFilter(filter).then((result) => {
-            console.log(result);
+            console.log('lund', result);
             setVotesData(result);
         });
     }, [contract]);
+
+
+    const votePressed= async (id, optionIdx) => {
+        await contract.vote(id, optionIdx).then(() => alert("Success")).catch((e) => alert(e.message));
+
+    }
 
 
     const setVotesData = async (votes) => {
@@ -76,6 +82,9 @@ const Votes = ({contract}) => {
                         <div className='d-flex align -items-center'>
                         <ProgressBar now={(vote.votes[idx] / Math.max(1, vote.totalVotes)) * 100} label={`${vote.votes[idx]} votes`} 
                         className='w-100 me-2' />
+                        <Button size = "sm" onClick={() => {votePressed(vote.id, idx)}} variant = 'dark'>
+                            Vote
+                        </Button>
                         </div>
                     </div> )}
                 </Card.Body>
