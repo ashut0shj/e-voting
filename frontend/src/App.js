@@ -93,7 +93,6 @@ function App() {
       setSigner(signerInstance);
       setConnected(true);
       
-      // Check membership status
       if (contractInstance && signerInstance) {
         const address = await signerInstance.getAddress();
         const isMem = await contractInstance.members(address);
