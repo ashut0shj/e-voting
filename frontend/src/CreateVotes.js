@@ -42,14 +42,13 @@ const CreateVotes = () => {
     
     try {
       const tx = await contract.createVote(uri, endTimestamp, parseInt(options));
-      await tx.wait(); // Wait for transaction to be mined
+      await tx.wait(); 
       
       alert("Vote created successfully!");
       setUri("");
       setOptions(2);
       setEndDate("");
       
-      // Navigate to votes page
       navigate("/votes");
     } catch (e) {
       console.error("Error creating vote:", e);

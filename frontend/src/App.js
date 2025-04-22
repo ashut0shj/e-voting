@@ -116,7 +116,7 @@ function App() {
       const tx = await contract.join();
       await tx.wait(); 
       
-      // Manually update membership status after successful transaction
+     
       setIsMember(true);
       alert("Successfully joined as a member!");
     } catch (error) {
@@ -125,7 +125,6 @@ function App() {
     }
   };
 
-  // Create a context value to share with all components
   const contextValue = {
     contract,
     connected,

@@ -10,20 +10,15 @@ const Votes = () => {
   const [votingInProgress, setVotingInProgress] = useState({});
   const [timeRemaining, setTimeRemaining] = useState({});
 
-  // Helper function to fetch data from IPFS
   const fetchIPFSData = async (uri) => {
     try {
-      // Handle different IPFS URI formats
       let url;
       if (uri.startsWith("ipfs/")) {
-        // Convert IPFS URI to an HTTP gateway URL
         const cid = uri.replace("ipfs/", "");
         url = `https://gateway.pinata.cloud/ipfs/${cid}`;
       } else if (uri.startsWith("https://")) {
-        // Already a URL
         url = uri;
       } else {
-        // Assume it's a CID directly
         url = `https://gateway.pinata.cloud/ipfs/${uri}`;
       }
 
@@ -38,13 +33,10 @@ const Votes = () => {
     }
   };
 
-  // Format date as string showing time remaining
   const formatTimeRemaining = (endTime) => {
     const now = Date.now();
     
-    // Check if end time is reasonable (less than 10 years in the future)
-    // This handles potential errors in timestamp conversion
-    const maxReasonableTime = now + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years in ms
+    const maxReasonableTime = now + (10 * 365 * 24 * 60 * 60 * 1000); 
     
     if (endTime > maxReasonableTime || endTime <= now) {
       return { text: endTime <= now ? "Voting ended" : "Time calculation error" };
@@ -53,7 +45,6 @@ const Votes = () => {
     const totalMs = endTime - now;
     const days = Math.floor(totalMs / (1000 * 60 * 60 * 24));
     
-    // Cap days at 999 for display purposes
     const displayDays = Math.min(days, 999);
     
     const hours = Math.floor((totalMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -71,7 +62,6 @@ const Votes = () => {
     };
   };
 
-  // Calculate remaining time for each active vote
   useEffect(() => {
     const updateAllTimeRemaining = () => {
       const updatedTimeRemaining = {};
@@ -83,18 +73,15 @@ const Votes = () => {
       setTimeRemaining(updatedTimeRemaining);
     };
     
-    // Initial calculation
     if (votes.length > 0) {
       updateAllTimeRemaining();
     }
     
-    // Set interval for updating
-    const intervalId = setInterval(updateAllTimeRemaining, 60000); // Update every minute
+    const intervalId = setInterval(updateAllTimeRemaining, 60000); 
     
     return () => clearInterval(intervalId);
   }, [votes]);
 
-  // Fetch votes whenever contract or connected status changes
   useEffect(() => {
     const fetchVotes = async () => {
       if (!contract || !connected) {
@@ -106,8 +93,6 @@ const Votes = () => {
         setLoading(true);
         setError(null);
         
-        // Try to find votes by ID
-        // Looking at IDs from 0 to 30 (arbitrary limit)
         const votesData = [];
         const maxVoteId = 30;
         
@@ -115,9 +100,7 @@ const Votes = () => {
           try {
             const voteData = await contract.getVote(i);
             
-            // Check if this is a valid vote (non-empty URI)
             if (voteData && voteData[0] && voteData[0] !== "") {
-              // Check if user has voted
               let hasVoted = false;
               
               if (signer) {
@@ -125,7 +108,6 @@ const Votes = () => {
                 hasVoted = await contract.didVote(address, i);
               }
               
-              // Fetch the actual data from IPFS
               let ipfsData = null;
               try {
                 ipfsData = await fetchIPFSData(voteData[0]);
@@ -135,15 +117,13 @@ const Votes = () => {
               
               const endTimeSeconds = Number(voteData[3]);
               
-              // Validate end time - ensure it's a reasonable timestamp
-              // If timestamp appears to be too large, try to interpret it differently
               let endTimeMs;
               
-              if (endTimeSeconds > 253402300800) { // Beyond year 9999
+              if (endTimeSeconds > 253402300800) { 
                 console.warn(`End time for vote ${i} seems invalid: ${endTimeSeconds}`);
-                endTimeMs = Date.now() + (7 * 24 * 60 * 60 * 1000); // Default to 7 days from now
+                endTimeMs = Date.now() + (7 * 24 * 60 * 60 * 1000); 
               } else {
-                endTimeMs = endTimeSeconds * 1000; // Convert to milliseconds
+                endTimeMs = endTimeSeconds * 1000;
               }
               
               votesData.push({
@@ -153,16 +133,14 @@ const Votes = () => {
                 votes: voteData[2].map(v => Number(v)),
                 endTime: endTimeMs,
                 hasVoted: hasVoted,
-                ipfsData: ipfsData // Add the IPFS data to the vote object
+                ipfsData: ipfsData 
               });
             }
           } catch (err) {
-            // Just skip this vote ID
             console.log(`Vote ${i} doesn't exist or can't be fetched`);
           }
         }
         
-        // Sort votes by ID in descending order (newest first)
         votesData.sort((a, b) => b.id - a.id);
         
         setVotes(votesData);
@@ -192,21 +170,18 @@ const Votes = () => {
       return;
     }
     
-    // Set voting in progress for this vote ID and option
     setVotingInProgress(prev => ({
       ...prev,
       [`${voteId}-${option}`]: true
     }));
 
     try {
-      // Check if voting has ended
       const vote = votes.find(v => v.id === voteId);
       if (vote && vote.endTime < Date.now()) {
         alert("Voting has ended for this proposal");
         return;
       }
 
-      // Check if user has already voted
       if (signer) {
         const address = await signer.getAddress();
         const hasVoted = await contract.didVote(address, voteId);
@@ -217,14 +192,12 @@ const Votes = () => {
         }
       }
 
-      // Cast vote
       const tx = await contract.vote(voteId, option);
-      await tx.wait(); // Wait for transaction to be mined
+      await tx.wait(); 
       
       alert("Vote cast successfully!");
       
 
-      // Update local state
       const voteData = await contract.getVote(voteId);
       const updatedVotes = [...votes];
       const voteIndex = updatedVotes.findIndex(v => v.id === voteId);
@@ -249,7 +222,6 @@ const Votes = () => {
     }
   };
 
-  // Calculate total votes for a vote
   const calculateTotalVotes = (voteArray) => {
     return voteArray.reduce((total, count) => total + count, 0);
   };
@@ -342,20 +314,17 @@ const Votes = () => {
               
               <ListGroup className="mb-3">
                 {vote.votes.map((count, index) => {
-                  // Get the option text from IPFS data if available
                   const optionLabel = vote.ipfsData && vote.ipfsData.options && vote.ipfsData.options[index]
                     ? vote.ipfsData.options[index]
                     : `Option ${index + 1}`;
                   
-                  // Calculate percentage for progress bar
                   const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
                   
-                  // Determine progress bar variant based on vote count ranking
                   let variant = "info";
                   if (Math.max(...vote.votes) === count && count > 0) {
-                    variant = "success"; // Leading option
+                    variant = "success"; 
                   } else if (count === 0) {
-                    variant = "secondary"; // No votes
+                    variant = "secondary"; 
                   }
                     
                   return (
