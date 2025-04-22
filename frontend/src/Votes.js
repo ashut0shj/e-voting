@@ -7,7 +7,7 @@ import ProgressBar from 'react-bootstrap/ProgressBar';
 
 const Votes = ({contract}) => {
 
-    const gateway = "hhtps://gateway.pinata.cloud/";
+    const gateway = "https://gateway.pinata.cloud/";
     const [votes, setVotes] = useState([]);
 
     useEffect(() => {
@@ -17,6 +17,7 @@ const Votes = ({contract}) => {
         }
         const filter = contract.filters.VoteCreated();
         contract.queryFilter(filter).then((result) => {
+            console.log(result);
             setVotesData(result);
         });
     }, [contract]);
@@ -34,7 +35,7 @@ const Votes = ({contract}) => {
 
 
                 const currentVotes = voteData[2];
-                const currentVotesNumbers = currentVotes.map((val) => val.isNumber());
+                const currentVotesNumbers = currentVotes.map((val) => val.toNumber());
 
                 const newVote = {
                     id: voteId.toNumber(),
