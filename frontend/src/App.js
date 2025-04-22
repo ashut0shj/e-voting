@@ -3,89 +3,160 @@ import Votes from "./Votes";
 import CreateVotes from "./CreateVotes";
 import NavBar from "./NavBar";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext } from "react";
 import {connect, getContract} from "./contract";
 
-console.log("Nappr Component Loaded");
+// Create context to share state across components
+export const AppContext = createContext();
 
 function App() {
-
   const [contract, setContract] = useState(null);
   const [connected, setConnected] = useState(false); 
   const [isMember, setIsMember] = useState(false);
+  const [signer, setSigner] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // Initial setup - check if already connected
   useEffect(() => {
-    window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
-      if (accounts.length > 0) {
-        handleinit();
+    const checkConnection = async () => {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts && accounts.length > 0) {
+          await handleInit();
+        }
+      } catch (err) {
+        console.error("Error checking connection:", err);
+      } finally {
+        setLoading(false);
       }
-      else{
-        setConnected(false);
-      }
-    });
+    };
 
+    checkConnection();
+
+    // Listen for account changes
+    const handleAccountsChanged = async (accounts) => {
+      if (accounts.length > 0) {
+        await handleInit();
+      } else {
+        setConnected(false);
+        setContract(null);
+        setSigner(null);
+        setIsMember(false);
+      }
+    };
+
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
+    
+    return () => {
+      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+    };
   }, []);
 
+  // Check membership status when contract and signer are available
+  useEffect(() => {
+    const checkMembership = async () => {
+      if (contract && signer) {
+        try {
+          const address = await signer.getAddress();
+          const isMem = await contract.members(address);
+          setIsMember(isMem);
+        } catch (err) {
+          console.error("Error checking membership:", err);
+        }
+      }
+    };
+    
+    checkMembership();
+  }, [contract, signer]);
 
-  const handleinit = async () => {
+  const handleInit = async () => {
     try {
+      const [contractInstance, signerInstance] = await getContract();
+      
+      setContract(contractInstance);
+      setSigner(signerInstance);
       setConnected(true);
       
-      const [contract, signer] = await getContract();
-      setContract(contract);
-  
-      const address = await signer.getAddress();
-      const isMem = await contract.members(address);
-      setIsMember(isMem);
-  
+      // Check membership status
+      if (contractInstance && signerInstance) {
+        const address = await signerInstance.getAddress();
+        const isMem = await contractInstance.members(address);
+        setIsMember(isMem);
+      }
     } catch (err) {
-      console.error("Error in handleinit:", err);
+      console.error("Error in handleInit:", err);
+      setConnected(false);
     }
   };
   
+  const connectCallback = async () => {
+    try {
+      setLoading(true);
+      const {contract: contractInstance, signer: signerInstance} = await connect();
+      
+      setContract(contractInstance);
+      setSigner(signerInstance);
+      setConnected(true);
+      
+      // Check membership status
+      if (contractInstance && signerInstance) {
+        const address = await signerInstance.getAddress();
+        const isMem = await contractInstance.members(address);
+        setIsMember(isMem);
+      }
+    } catch (err) {
+      console.error("Error connecting:", err);
+      setConnected(false);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const connectCallback =  async () => {
-  const {contract} = await connect();
-  setContract(contract);
-  if (contract){
-    setConnected(true);
-  }
-};
+  const becomeMember = async () => {
+    if (!contract) {
+      alert("Connect to Metamask first");
+      return;
+    }
 
-const becomeMember = async () => {
-  if (!contract){
-    alert("Connect to the Metamask first");
-    return ;
-  }
+    try {
+      const tx = await contract.join();
+      await tx.wait(); // Wait for transaction to be mined
+      
+      // Manually update membership status after successful transaction
+      setIsMember(true);
+      alert("Successfully joined as a member!");
+    } catch (error) {
+      console.error("Error becoming member:", error);
+      alert(error.message);
+    }
+  };
 
-  await contract.join().then(() => {
-    alert("Joined");
-    setIsMember(true);
-  }).catch((error) => {
-    alert(error.message);
-  });
-
-};
-
-
+  // Create a context value to share with all components
+  const contextValue = {
+    contract,
+    connected,
+    isMember,
+    signer,
+    loading,
+    connectWallet: connectCallback,
+    becomeMember
+  };
 
   return (
-    <div className="App">
-      <Router> 
-        <NavBar connect = {connectCallback} 
-                connected = {connected} 
-                becomeMember = {becomeMember} 
-                isMember = {isMember} />
-
-        <div className="container">
-          <Routes>
-            <Route path="/create-vote" element={<CreateVotes  contract = {contract}/>} />
-            <Route path="/votes" element={<Votes contract={contract}/>} />
-          </Routes>
-        </div>
-      </Router>
-      
-    </div>
+    <AppContext.Provider value={contextValue}>
+      <div className="App">
+        <Router> 
+          <NavBar />
+          <div className="container">
+            <Routes>
+              <Route path="/create-vote" element={<CreateVotes />} />
+              <Route path="/votes" element={<Votes />} />
+              <Route path="/" element={<Votes />} />
+            </Routes>
+          </div>
+        </Router>
+      </div>
+    </AppContext.Provider>
   );
 }
 

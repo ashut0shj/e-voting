@@ -1,70 +1,145 @@
-import { Button}  from "react-bootstrap";
-import From from "react-bootstrap/Form";
-import { useState } from "react";
+import { Button, Form, Alert, Spinner } from "react-bootstrap";
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "./App";
 
-const CreateVotes = ({contract}) => {
+const CreateVotes = () => {
+  const { contract, connected, isMember } = useContext(AppContext);
   const [uri, setUri] = useState("");
   const [options, setOptions] = useState(2);
   const [endDate, setEndDate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const createVote = async () => {
-    if(!contract){
-      alert("Please connect to the Metamask first");
+    if (!contract) {
+      alert("Please connect to Metamask first");
       return;
     }
 
-    await contract
-    .createVote(uri,  new Date(endDate).getTime(), options)
-    .then(() => alert("Success"))
-    .catch((e) => alert(e.message));
+    if (!isMember) {
+      alert("You need to become a member first");
+      return;
+    }
+
+    if (!uri.trim()) {
+      alert("Please enter an IPFS URI");
+      return;
+    }
+
+    if (!endDate) {
+      alert("Please select an end date");
+      return;
+    }
+
+    const endTimestamp = new Date(endDate).getTime();
+    if (endTimestamp <= Date.now()) {
+      alert("End date must be in the future");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const tx = await contract.createVote(uri, endTimestamp, parseInt(options));
+      await tx.wait(); // Wait for transaction to be mined
+      
+      alert("Vote created successfully!");
+      setUri("");
+      setOptions(2);
+      setEndDate("");
+      
+      // Navigate to votes page
+      navigate("/votes");
+    } catch (e) {
+      console.error("Error creating vote:", e);
+      alert("Error creating vote: " + e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  if (!connected) {
+    return (
+      <div className="text-center my-5">
+        <Alert variant="warning">
+          Please connect to MetaMask to create votes
+        </Alert>
+      </div>
+    );
+  }
 
-  return(
-  <From className="m-2">
-    <h2 className="d-flex justify-content-center">Create a Vote</h2>
-    <From.Group className="m-2">
-      <From.Label>IPFS URI</From.Label>
-      <From.Control 
-        type="text" 
-        name="uri" 
-        value={uri}
-        placeholder="IPFS URI"
-        onChange={(e) => setUri(e.target.value)} 
-      />
-    </From.Group>
+  if (!isMember) {
+    return (
+      <div className="text-center my-5">
+        <Alert variant="warning">
+          You need to become a member to create votes
+        </Alert>
+      </div>
+    );
+  }
 
-    <From.Group className="m-2">
-      <From.Label>Number of options</From.Label>
-      <From.Control 
-        type="number" 
-        min={2}
-        max={8}
-        name="options" 
-        value={options}
-        onChange={(e) => setOptions(e.target.value)} 
-      />
-    </From.Group>
+  return (
+    <Form className="m-2">
+      <h2 className="d-flex justify-content-center">Create a Vote</h2>
+      <Form.Group className="m-2">
+        <Form.Label>IPFS URI</Form.Label>
+        <Form.Control 
+          type="text" 
+          name="uri" 
+          value={uri}
+          placeholder="IPFS URI"
+          onChange={(e) => setUri(e.target.value)} 
+        />
+      </Form.Group>
 
-    <From.Group className="m-2">
-      <From.Label>End Date</From.Label>
-      <From.Control 
-        type="date" 
-        name="endDate" 
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)} 
-      />
-    </From.Group>
+      <Form.Group className="m-2">
+        <Form.Label>Number of options</Form.Label>
+        <Form.Control 
+          type="number" 
+          min={2}
+          max={8}
+          name="options" 
+          value={options}
+          onChange={(e) => setOptions(parseInt(e.target.value))} 
+        />
+      </Form.Group>
 
-    <From.Group className="m-2 mt-4">
-      <Button 
-        variant="success" 
-        onClick={createVote}>Create</Button>
-    </From.Group>
-  </From>
+      <Form.Group className="m-2">
+        <Form.Label>End Date</Form.Label>
+        <Form.Control 
+          type="date" 
+          name="endDate" 
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)} 
+        />
+      </Form.Group>
 
+      <Form.Group className="m-2 mt-4">
+        <Button 
+          variant="success" 
+          onClick={createVote}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+                className="me-2"
+              />
+              Creating...
+            </>
+          ) : (
+            "Create"
+          )}
+        </Button>
+      </Form.Group>
+    </Form>
   );
-
 };
 
 export default CreateVotes;
