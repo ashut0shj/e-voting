@@ -6,7 +6,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect, createContext } from "react";
 import {connect, getContract} from "./contract";
 
-// Create context to share state across components
 export const AppContext = createContext();
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
   const [signer, setSigner] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Initial setup - check if already connected
   useEffect(() => {
     const checkConnection = async () => {
       try {
@@ -33,7 +31,6 @@ function App() {
 
     checkConnection();
 
-    // Listen for account changes
     const handleAccountsChanged = async (accounts) => {
       if (accounts.length > 0) {
         await handleInit();
@@ -52,7 +49,6 @@ function App() {
     };
   }, []);
 
-  // Check membership status when contract and signer are available
   useEffect(() => {
     const checkMembership = async () => {
       if (contract && signer) {
@@ -77,7 +73,6 @@ function App() {
       setSigner(signerInstance);
       setConnected(true);
       
-      // Check membership status
       if (contractInstance && signerInstance) {
         const address = await signerInstance.getAddress();
         const isMem = await contractInstance.members(address);
@@ -120,9 +115,9 @@ function App() {
 
     try {
       const tx = await contract.join();
-      await tx.wait(); // Wait for transaction to be mined
+      await tx.wait(); 
       
-      // Manually update membership status after successful transaction
+     
       setIsMember(true);
       alert("Successfully joined as a member!");
     } catch (error) {
@@ -131,7 +126,6 @@ function App() {
     }
   };
 
-  // Create a context value to share with all components
   const contextValue = {
     contract,
     connected,
