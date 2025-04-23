@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Votes from "./Votes";
 import CreateVotes from "./CreateVotes";
+import UserDashboard from "./UserDashboard";
+import IPFSGenerator from "./IPFSGenerator"; // Import the new component
+import Home from "./Home"; 
 import NavBar from "./NavBar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect, createContext } from "react";
@@ -116,7 +119,6 @@ function App() {
       const tx = await contract.join();
       await tx.wait(); 
       
-     
       setIsMember(true);
       alert("Successfully joined as a member!");
     } catch (error) {
@@ -144,7 +146,9 @@ function App() {
             <Routes>
               <Route path="/create-vote" element={<CreateVotes />} />
               <Route path="/votes" element={<Votes />} />
-              <Route path="/" element={<Votes />} />
+              <Route path="/dashboard" element={<UserDashboard />} />
+              <Route path="/generate-ipfs" element={<IPFSGenerator />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </div>
         </Router>

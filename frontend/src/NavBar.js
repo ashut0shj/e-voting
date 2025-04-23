@@ -18,7 +18,13 @@ const NavBar = () => {
         <Navbar.Collapse id="navbar-nav">
           <Nav className="me-auto">
             <Nav.Link as={Link} to="/votes">Votes</Nav.Link>
-            <Nav.Link as={Link} to="/create-vote">Create Vote</Nav.Link>
+            {connected && isMember && (
+              <>
+                <Nav.Link as={Link} to="/generate-ipfs">Generate IPFS</Nav.Link>
+                <Nav.Link as={Link} to="/create-vote">Create Vote</Nav.Link>
+                <Nav.Link as={Link} to="/dashboard">My Dashboard</Nav.Link>
+              </>
+            )}
             {connected && !isMember && (
               <Button variant="success" onClick={becomeMember}>
                 Become member

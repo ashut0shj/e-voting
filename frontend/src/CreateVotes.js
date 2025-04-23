@@ -1,6 +1,6 @@
 import { Button, Form, Alert, Spinner } from "react-bootstrap";
-import { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AppContext } from "./App";
 
 const CreateVotes = () => {
@@ -10,6 +10,14 @@ const CreateVotes = () => {
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for IPFS URI passed from the generator
+  useEffect(() => {
+    if (location.state?.ipfsUri) {
+      setUri(location.state.ipfsUri);
+    }
+  }, [location.state]);
 
   const createVote = async () => {
     if (!contract) {
@@ -41,7 +49,7 @@ const CreateVotes = () => {
     setLoading(true);
     
     try {
-      const tx = await contract.createVote(uri, endTimestamp, parseInt(options));
+      const tx = await contract.createVote(uri, Math.floor(endTimestamp / 1000), parseInt(options));
       await tx.wait(); 
       
       alert("Vote created successfully!");
@@ -56,6 +64,10 @@ const CreateVotes = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const navigateToGenerator = () => {
+    navigate("/generate-ipfs");
   };
 
   if (!connected) {
@@ -81,15 +93,21 @@ const CreateVotes = () => {
   return (
     <Form className="m-2">
       <h2 className="d-flex justify-content-center">Create a Vote</h2>
+      
+      
+      
       <Form.Group className="m-2">
         <Form.Label>IPFS URI</Form.Label>
         <Form.Control 
           type="text" 
           name="uri" 
           value={uri}
-          placeholder="IPFS URI"
+          placeholder="IPFS URI (e.g., ipfs/QmYourHash...)"
           onChange={(e) => setUri(e.target.value)} 
         />
+        <Form.Text className="text-muted">
+          Enter the IPFS URI from our generator or your own IPFS hash in the format "ipfs/QmYourHash..."
+        </Form.Text>
       </Form.Group>
 
       <Form.Group className="m-2">
@@ -102,6 +120,9 @@ const CreateVotes = () => {
           value={options}
           onChange={(e) => setOptions(parseInt(e.target.value))} 
         />
+        <Form.Text className="text-muted">
+          This should match the number of options in your IPFS metadata
+        </Form.Text>
       </Form.Group>
 
       <Form.Group className="m-2">
