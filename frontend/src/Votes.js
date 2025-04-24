@@ -364,18 +364,31 @@ const Votes = () => {
           .vote-option:hover::before {
             opacity: 1;
           }
-          
           .progress {
-            height: 10px;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-          }
-          
-          .progress-bar {
-            border-radius: 5px;
-            transition: width 0.6s ease;
-          }
+  height: 10px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar {
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.progress-simple .progress-bar {
+  background-color: var(--primary); /* Use a single color */
+  background-image: none; /* Remove pattern */
+  animation: none; /* Remove animation */
+}
+
+.progress-vote-count {
+  position: absolute;
+  right: 10px;
+  top: -5px;
+  font-size: 0.75rem;
+  color: var(--light);
+}
           
           .vote-button {
             border-radius: 50px;
@@ -764,7 +777,7 @@ const Votes = () => {
                                 <Badge bg="dark" className="me-3 p-2">
                                   #{vote.id}
                                 </Badge>
-                                <h4 className="mb-0">
+                                <h4 className="mb-0 text-light">
                                   {vote.ipfsData && vote.ipfsData.description 
                                     ? vote.ipfsData.description 
                                     : `Topic: ${vote.uri}`}
@@ -817,7 +830,7 @@ const Votes = () => {
                             )}
                           </div>
                           
-                          <div className="mb-4">
+                          <div className="mb-4 text-white">
                           {vote.votes.map((count, index) => {
                               const optionLabel = vote.ipfsData && vote.ipfsData.options && vote.ipfsData.options[index]
                                 ? vote.ipfsData.options[index]
@@ -846,9 +859,9 @@ const Votes = () => {
                                   
                                   <div className="position-relative mb-3">
                                     <ProgressBar 
-                                      variant={isWinningOption ? "success" : count === 0 ? "secondary" : "info"} 
+                                      variant="primary" 
                                       now={percentage > 0 ? percentage : 3} 
-                                      className="mb-0"
+                                      className="mb-0 progress-simple"
                                     />
                                     {percentage > 10 && (
                                       <span className="progress-vote-count">{percentage}%</span>
