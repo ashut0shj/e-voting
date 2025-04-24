@@ -89,7 +89,7 @@ function App() {
         particle.style.top = `${Math.random() * 100}%`;
         
         // Faster animation
-        const duration = Math.random() * 10 + 10; // 5-15s duration
+        const duration = Math.random() * 10 + 5; // 5-15s duration
         const delay = Math.random() * 5;
         particle.style.animation = `floatParticle ${duration}s infinite ease-in-out ${delay}s`;
         
@@ -117,7 +117,7 @@ function App() {
         
         // Push particles away from mouse
         if (distance < 0.2) {
-          const pushForce = (0.2 - distance) * 0.02;
+          const pushForce = (0.2 - distance) * 0.08;
           const angle = Math.atan2(
             particleY - mouseY,
             particleX - mouseX
@@ -138,8 +138,8 @@ function App() {
     window.addEventListener('resize', createParticles);
     
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', createParticles);
+      window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', createParticles);
     };
   }, []);
 

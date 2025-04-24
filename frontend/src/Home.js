@@ -5,7 +5,7 @@ import { Container, Row, Col, Button, Alert, Spinner, Card, Badge, ProgressBar }
 import { 
   ShieldLockFill, CheckCircleFill, PeopleFill, FileTextFill,
   GraphUpArrow, LightningFill, GearFill, ArrowRightCircleFill,
-  BoxArrowRight, CodeSlash, HexagonFill, Clock, Award
+  BoxArrowRight, CodeSlash, HexagonFill, Clock
 } from "react-bootstrap-icons";
 
 function Home() {

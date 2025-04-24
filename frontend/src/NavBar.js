@@ -27,7 +27,7 @@ const NavBar = () => {
             )}
             {connected && !isMember && (
               <Button variant="success" onClick={becomeMember}>
-                Become member
+                Voter Registration
               </Button>
             )}
           </Nav>
