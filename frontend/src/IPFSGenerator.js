@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Form, Button, Alert, Spinner, Card, Row, Col, InputGroup, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from './App';
@@ -17,15 +17,6 @@ const IPFSGenerator = () => {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
-  
-  // Load API keys from environment variables on component mount
-  useEffect(() => {
-    const pinataApiKey = process.env.REACT_APP_PINATA_API_KEY;
-    const pinataApiSecret = process.env.REACT_APP_PINATA_API_SECRET;
-    
-    if (pinataApiKey) setApiKey(pinataApiKey);
-    if (pinataApiSecret) setApiSecret(pinataApiSecret);
-  }, []);
   
   // Handle changing the number of options
   const handleOptionsCountChange = (count) => {
@@ -59,7 +50,6 @@ const IPFSGenerator = () => {
         setTimeout(() => setCopySuccess(''), 2000);
       })
       .catch(err => {
-        console.error('Failed to copy: ', err);
         setError('Failed to copy to clipboard');
       });
   };
@@ -118,9 +108,7 @@ const IPFSGenerator = () => {
       }
       
       const result = await response.json();
-      const hash = result.IpfsHash;
-      
-      setIpfsHash(hash);
+      setIpfsHash(result.IpfsHash);
       setSuccess(true);
       
       // Reset form fields except API credentials
@@ -128,7 +116,6 @@ const IPFSGenerator = () => {
       setOptions(Array(optionsCount).fill(''));
       
     } catch (err) {
-      console.error('Error uploading to IPFS:', err);
       setError(`Failed to upload to IPFS: ${err.message}`);
     } finally {
       setLoading(false);
@@ -313,42 +300,39 @@ const IPFSGenerator = () => {
               ))}
             </Form.Group>
             
-            {(!apiKey || !apiSecret) && (
-              <Card className="bg-light mb-4">
-                <Card.Body>
-                  <Card.Title>Pinata API Credentials</Card.Title>
-                  <Card.Text className="text-muted mb-3">
-                    API credentials are normally loaded from environment variables.
-                    If not configured, you can enter them manually:
-                  </Card.Text>
-                  
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>API Key</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter your Pinata API Key"
-                          value={apiKey}
-                          onChange={(e) => setApiKey(e.target.value)}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>API Secret</Form.Label>
-                        <Form.Control
-                          type="password"
-                          placeholder="Enter your Pinata API Secret"
-                          value={apiSecret}
-                          onChange={(e) => setApiSecret(e.target.value)}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            )}
+            <Card className="bg-light mb-4">
+              <Card.Body>
+                <Card.Title>Pinata API Credentials</Card.Title>
+                <Card.Text className="text-muted mb-3">
+                  Enter your Pinata API credentials to upload metadata to IPFS:
+                </Card.Text>
+                
+                <Row>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>API Key</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter your Pinata API Key"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group className="mb-3">
+                      <Form.Label>API Secret</Form.Label>
+                      <Form.Control
+                        type="password"
+                        placeholder="Enter your Pinata API Secret"
+                        value={apiSecret}
+                        onChange={(e) => setApiSecret(e.target.value)}
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </Card.Body>
+            </Card>
             
             <Button
               variant="primary"
