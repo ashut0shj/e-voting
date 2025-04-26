@@ -12,7 +12,6 @@ const CreateVotes = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check for IPFS URI passed from the generator
   useEffect(() => {
     if (location.state?.ipfsUri) {
       setUri(location.state.ipfsUri);
