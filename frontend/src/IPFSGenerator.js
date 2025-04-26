@@ -18,31 +18,25 @@ const IPFSGenerator = () => {
   const [apiSecret, setApiSecret] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
   
-  // Handle changing the number of options
   const handleOptionsCountChange = (count) => {
     const newCount = parseInt(count);
     if (newCount < 2) return;
     
     setOptionsCount(newCount);
     
-    // Adjust the options array size
     if (newCount > options.length) {
-      // Add empty options
       setOptions([...options, ...Array(newCount - options.length).fill('')]);
     } else {
-      // Remove extra options
       setOptions(options.slice(0, newCount));
     }
   };
   
-  // Handle option text change
   const handleOptionChange = (index, value) => {
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
   };
   
-  // Copy text to clipboard with visual feedback
   const copyToClipboard = (text, type) => {
     navigator.clipboard.writeText(text)
       .then(() => {
@@ -54,7 +48,6 @@ const IPFSGenerator = () => {
       });
   };
   
-  // Generate IPFS metadata JSON and upload to Pinata
   const generateIPFS = async () => {
     if (!description.trim()) {
       setError('Please enter a description for the vote');
@@ -66,14 +59,12 @@ const IPFSGenerator = () => {
       return;
     }
     
-    // Validate all options have content
     const emptyOptionIndex = options.findIndex(opt => !opt.trim());
     if (emptyOptionIndex !== -1) {
       setError(`Option ${emptyOptionIndex + 1} cannot be empty`);
       return;
     }
     
-    // Create metadata object
     const metadata = {
       description: description.trim(),
       options: options.map(opt => opt.trim()),
@@ -84,7 +75,6 @@ const IPFSGenerator = () => {
     setError(null);
     
     try {
-      // Upload to Pinata Cloud
       const pinataEndpoint = 'https://api.pinata.cloud/pinning/pinJSONToIPFS';
       
       const response = await fetch(pinataEndpoint, {
@@ -111,7 +101,6 @@ const IPFSGenerator = () => {
       setIpfsHash(result.IpfsHash);
       setSuccess(true);
       
-      // Reset form fields except API credentials
       setDescription('');
       setOptions(Array(optionsCount).fill(''));
       
