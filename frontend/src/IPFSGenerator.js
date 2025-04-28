@@ -136,16 +136,7 @@ const IPFSGenerator = () => {
     </Tooltip>
   );
   
-  if (!connected) {
-    return (
-      <div className="text-center my-5">
-        <Alert variant="warning">
-          <i className="bi bi-exclamation-circle me-2"></i>
-          Please connect to MetaMask to generate IPFS metadata
-        </Alert>
-      </div>
-    );
-  }
+
 
   if (!isMember) {
     return (

@@ -72,16 +72,7 @@ const CreateVotes = () => {
   );
 
   // Display appropriate messages if not connected or not a member
-  if (!connected) {
-    return (
-      <div className="text-center my-5">
-        <Alert variant="warning">
-          <i className="bi bi-exclamation-circle me-2"></i>
-          Please connect to MetaMask to create a vote
-        </Alert>
-      </div>
-    );
-  }
+  
 
   if (!isMember) {
     return (

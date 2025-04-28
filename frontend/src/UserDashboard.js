@@ -91,15 +91,7 @@ const UserDashboard = () => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
-  if (!connected) {
-    return (
-      <div className="text-center my-5">
-        <Alert variant="warning">
-          Please connect to MetaMask to view your dashboard
-        </Alert>
-      </div>
-    );
-  }
+
 
   if (!isMember) {
     return (
