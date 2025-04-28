@@ -23,7 +23,7 @@ const Votes = () => {
 
   const fetchIPFSData = async (uri) => {
     try {
-      let url;
+      let url = "ipfs/bafkreibir7xn4yxx5vfxkd6eqkilky2bglv5qzae72iorhy4tqnnxbhxey";
       if (uri.startsWith("ipfs/")) {
         const cid = uri.replace("ipfs/", "");
         url = `https://gateway.pinata.cloud/ipfs/${cid}`;
