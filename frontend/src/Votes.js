@@ -102,6 +102,7 @@ const Votes = () => {
   }, [votes]);
 
   useEffect(() => {
+    const fetchVotes = async () => {
 
     
       try {
@@ -164,11 +165,8 @@ const Votes = () => {
     };
     
 
-    if (connected && contract) {
-      fetchVotes();
-    } else {
-      setLoading(false);
-    }
+
+    fetchVotes();
   }, [contract, connected, signer]);
 
   // Filter and search functionality
