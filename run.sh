@@ -23,8 +23,7 @@ sleep 3
 $TERMINAL "cd backend && npx hardhat run scripts/deploy.js --network localhost; exec bash" &
 sleep 5
 
-$TERMINAL "cd backend && npm run dev; exec bash" &
-sleep 2
+
 
 $TERMINAL "cd frontend && npm start; exec bash" &
 

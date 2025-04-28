@@ -709,3 +709,98 @@ Color Scheme: Purple & Black
 
 
 
+/* Add to your stylesheet */
+.tech-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.tech-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  border-color: rgba(25, 135, 84, 0.4);
+}
+
+.tech-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(25, 135, 84, 0.2);
+  border-radius: 12px;
+}
+
+.tech-icon i {
+  font-size: 24px;
+  color: var(--bs-success);
+}
+
+.text-light-gray {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.animate-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.animate-in.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Add some glow effect on hover for better visibility */
+.tech-card:hover .tech-icon {
+  background-color: rgba(25, 135, 84, 0.3);
+  box-shadow: 0 0 15px rgba(25, 135, 84, 0.4);
+}
+
+
+/* Add to your stylesheet */
+.tech-card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.tech-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  border-color: rgba(25, 135, 84, 0.4);
+}
+
+.tech-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(25, 135, 84, 0.2);
+  border-radius: 12px;
+}
+
+.text-light-gray {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.animate-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.animate-in.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Add some glow effect on hover for better visibility */
+.tech-card:hover .tech-icon {
+  background-color: rgba(25, 135, 84, 0.3);
+  box-shadow: 0 0 15px rgba(25, 135, 84, 0.4);
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { Form, Button, Alert, Spinner, Card, Row, Col, InputGroup, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from './App';
@@ -17,15 +17,6 @@ const IPFSGenerator = () => {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
-  
-  // Load API keys from environment variables on component mount
-  useEffect(() => {
-    const pinataApiKey = process.env.REACT_APP_PINATA_API_KEY;
-    const pinataApiSecret = process.env.REACT_APP_PINATA_API_SECRET;
-    
-    if (pinataApiKey) setApiKey(pinataApiKey);
-    if (pinataApiSecret) setApiSecret(pinataApiSecret);
-  }, []);
   
   // Handle changing the number of options
   const handleOptionsCountChange = (count) => {
@@ -169,7 +160,10 @@ const IPFSGenerator = () => {
   
   return (
     <div className="my-4">
-      <h2 className="text-center mb-4">Create Vote Metadata</h2>
+      <h2 className="text-center mb-4">
+        <i className="bi bi-hdd-network me-2"></i>
+        Create Vote Metadata
+      </h2>
       
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError(null)}>
@@ -179,7 +173,7 @@ const IPFSGenerator = () => {
       )}
       
       {success ? (
-        <Card className="shadow-sm mb-4">
+        <Card className="shadow-sm mb-4 border-success">
           <Card.Header className="bg-success text-white">
             <i className="bi bi-check-circle me-2"></i>
             Successfully uploaded to IPFS!
@@ -192,6 +186,7 @@ const IPFSGenerator = () => {
                   type="text"
                   value={ipfsHash}
                   readOnly
+                  className="font-monospace"
                 />
                 <OverlayTrigger
                   placement="top"
@@ -222,6 +217,7 @@ const IPFSGenerator = () => {
                   type="text"
                   value={`ipfs/${ipfsHash}`}
                   readOnly
+                  className="font-monospace"
                 />
                 <OverlayTrigger
                   placement="top"
@@ -273,7 +269,7 @@ const IPFSGenerator = () => {
         <Card className="shadow-sm">
           <Card.Body>
             <Form.Group className="mb-3">
-              <Form.Label>Vote Description</Form.Label>
+              <Form.Label><strong>Vote Description</strong></Form.Label>
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -287,7 +283,7 @@ const IPFSGenerator = () => {
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Number of Options</Form.Label>
+              <Form.Label><strong>Number of Options</strong></Form.Label>
               <Form.Control
                 type="number"
                 min={2}
@@ -301,7 +297,7 @@ const IPFSGenerator = () => {
             </Form.Group>
             
             <Form.Group className="mb-4">
-              <Form.Label>Vote Options</Form.Label>
+              <Form.Label><strong>Vote Options</strong></Form.Label>
               {options.map((option, index) => (
                 <Form.Control
                   key={index}
@@ -313,42 +309,46 @@ const IPFSGenerator = () => {
               ))}
             </Form.Group>
             
-            {(!apiKey || !apiSecret) && (
-              <Card className="bg-light mb-4">
-                <Card.Body>
-                  <Card.Title>Pinata API Credentials</Card.Title>
-                  <Card.Text className="text-muted mb-3">
-                    API credentials are normally loaded from environment variables.
-                    If not configured, you can enter them manually:
-                  </Card.Text>
-                  
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>API Key</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter your Pinata API Key"
-                          value={apiKey}
-                          onChange={(e) => setApiKey(e.target.value)}
-                        />
-                      </Form.Group>
-                    </Col>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>API Secret</Form.Label>
-                        <Form.Control
-                          type="password"
-                          placeholder="Enter your Pinata API Secret"
-                          value={apiSecret}
-                          onChange={(e) => setApiSecret(e.target.value)}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            )}
+            <Card className="shadow-sm mb-4">
+  <Card.Body>
+    <Card.Title>
+      <i className="bi bi-key me-2"></i>
+      Pinata API Credentials
+    </Card.Title>
+    <Card.Text className="text-white-50 mb-3">
+      Enter your Pinata API credentials to upload the vote metadata to IPFS:
+    </Card.Text>
+    
+    <Row>
+      <Col md={6}>
+        <Form.Group className="mb-3">
+          <Form.Label><strong>API Key</strong></Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter your Pinata API Key"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
+        </Form.Group>
+      </Col>
+      <Col md={6}>
+        <Form.Group className="mb-3">
+          <Form.Label><strong>API Secret</strong></Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Enter your Pinata API Secret"
+            value={apiSecret}
+            onChange={(e) => setApiSecret(e.target.value)}
+          />
+        </Form.Group>
+      </Col>
+    </Row>
+    <Card.Text className="small text-white-50">
+      <i className="bi bi-shield-lock me-1"></i>
+      Your API credentials are used only for this request and not stored.
+    </Card.Text>
+  </Card.Body>
+</Card>
             
             <Button
               variant="primary"
@@ -384,9 +384,9 @@ const IPFSGenerator = () => {
           <i className="bi bi-eye me-2"></i>
           Preview
         </h4>
-        <Card className="bg-light">
+        <Card >
           <Card.Body>
-            <pre className="mb-0 code-preview">
+            <pre className="mb-0 code-preview font-monospace">
               {JSON.stringify(
                 {
                   description: description || "Your vote description",

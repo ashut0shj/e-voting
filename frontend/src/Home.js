@@ -5,7 +5,12 @@ import { Container, Row, Col, Button, Alert, Spinner, Card, Badge, ProgressBar }
 import { 
   ShieldLockFill, CheckCircleFill, PeopleFill, FileTextFill,
   GraphUpArrow, LightningFill, GearFill, ArrowRightCircleFill,
-  BoxArrowRight, CodeSlash, HexagonFill, Clock
+  BoxArrowRight, CodeSlash, HexagonFill, Clock,   HddNetwork, 
+  FileEarmarkCode, 
+  Globe, 
+  Braces, 
+  Database, 
+  Layers 
 } from "react-bootstrap-icons";
 
 function Home() {
@@ -98,6 +103,7 @@ function Home() {
     }
   ];
 
+
   const howItWorks = [
     {
       number: "01",
@@ -106,8 +112,8 @@ function Home() {
     },
     {
       number: "02",
-      title: "Become a Member",
-      description: "Register as a verified voting member with a simple one-time transaction."
+      title: "Become a Voter",
+      description: "Register as a verified voting Voter with a simple one-time transaction."
     },
     {
       number: "03",
@@ -117,13 +123,44 @@ function Home() {
   ];
 
   const techStack = [
-    { name: "Ethereum", progress: 100 },
-    { name: "Solidity Smart Contracts", progress: 100 },
-    { name: "React Frontend", progress: 100 },
-    { name: "Web3.js / Ethers.js", progress: 100 },
-    { name: "IPFS Storage", progress: 75 },
-    { name: "Layer 2 Scaling", progress: 40 }
+    { 
+      name: "Ethereum", 
+      icon: <HddNetwork size={24} className="text-success" />,
+      description: "Secure, decentralized blockchain foundation that powers all our smart contracts and transactions.",
+      status: "Production"
+    },
+    { 
+      name: "Solidity Smart Contracts", 
+      icon: <FileEarmarkCode size={24} className="text-success" />,
+      description: "Custom-built smart contracts with comprehensive security audits to protect user assets.",
+      status: "Production"
+    },
+    { 
+      name: "React Frontend", 
+      icon: <Globe size={24} className="text-success" />,
+      description: "Fast, responsive user interface built with React for optimal user experience across all devices.",
+      status: "Production"
+    },
+    { 
+      name: "Web3.js / Ethers.js", 
+      icon: <Braces size={24} className="text-success" />,
+      description: "Seamless blockchain integration allowing real-time transaction processing and wallet connectivity.",
+      status: "Production"
+    },
+    { 
+      name: "IPFS Storage", 
+      icon: <Database size={24} className="text-success" />,
+      description: "Decentralized file storage ensuring data permanence and censorship resistance.",
+      status: "Testing"
+    },
+    { 
+      name: "Layer 2 Scaling", 
+      icon: <Layers size={24} className="text-success" />,
+      description: "Next-generation scaling solutions to improve transaction speeds and reduce gas fees.",
+      status: "Development"
+    }
   ];
+  
 
   return (
     <>
@@ -306,7 +343,7 @@ function Home() {
                       onClick={becomeMember}
                       className="me-3"
                     >
-                      <PeopleFill className="me-2" /> Become a Member
+                      <PeopleFill className="me-2" /> Become a Voter
                     </Button>
                   ) : (
                     <Link to="/create-vote">
@@ -414,9 +451,9 @@ function Home() {
         {connected && !isMember && (
           <Container className="mb-5">
             <Alert variant="info" className={`animate-in ${animateElements ? 'show' : ''}`}>
-              <Alert.Heading>Become a Member to Participate</Alert.Heading>
+              <Alert.Heading>Become a voter to Participate</Alert.Heading>
               <p>
-                You need to be a registered member to create votes and participate in the decision-making process.
+                You need to be a registered voter to create votes and participate in the decision-making process.
                 Registration requires a simple transaction to verify your identity on the blockchain.
               </p>
               <div className="d-flex justify-content-end">
@@ -448,7 +485,7 @@ function Home() {
                         {feature.icon}
                       </div>
                       <Card.Title>{feature.title}</Card.Title>
-                      <Card.Text className="text-gray-light">
+                      <Card.Text className="text-white-50">
                         {feature.description}
                       </Card.Text>
                     </Card.Body>
@@ -480,7 +517,7 @@ function Home() {
                         <div className="position-absolute bottom-0 start-0 w-25 h-1 bg-primary"></div>
                       </div>
                       <Card.Title className="mb-3">{step.title}</Card.Title>
-                      <Card.Text className="text-gray-light">
+                      <Card.Text className="text-white-50">
                         {step.description}
                       </Card.Text>
                     </Card.Body>
@@ -491,39 +528,40 @@ function Home() {
           </Container>
         </section>
 
-        {/* Technology Stack */}
-        <section className="py-5 bg-dark-light">
-          <Container>
-            <div className="text-center mb-5">
-              <Badge bg="success" className="mb-2">Technology</Badge>
-              <h2 className="display-5 mb-4">Built With Modern Tech</h2>
-              <p className="lead text-gray-light">
-                Our platform leverages cutting-edge blockchain technology for maximum security and transparency
-              </p>
-            </div>
-            
-            <Row className="justify-content-center">
-              <Col lg={8}>
-                <div className={`card animate-in ${animateElements ? 'show' : ''}`}>
-                  <div className="card-body p-4">
-                    {techStack.map((tech, index) => (
-                      <div key={index} className="mb-4">
-                        <div className="d-flex justify-content-between mb-2">
-                          <span>{tech.name}</span>
-                          <span>{tech.progress}%</span>
-                        </div>
-                        <ProgressBar 
-                          now={tech.progress} 
-                          variant={tech.progress === 100 ? "success" : "primary"}
-                        />
-                      </div>
-                    ))}
+{/* Technology Stack */}
+<section className="py-5 bg-dark-light">
+      <Container>
+        <div className="text-center mb-5">
+          <Badge bg="success" className="mb-2">Technology</Badge>
+          <h2 className="display-5 mb-4 text-white">Built With Modern Tech</h2>
+          <p className="lead text-light">
+            Our platform leverages cutting-edge blockchain technology for maximum security and transparency
+          </p>
+        </div>
+        
+        <Row className="justify-content-center g-4">
+          {techStack.map((tech, index) => (
+            <Col key={index} md={6} lg={4}>
+              <div className={`card h-100 tech-card bg-dark border-secondary animate-in ${animateElements ? 'show' : ''}`}>
+                <div className="card-body d-flex flex-column p-4">
+                  <div className="tech-icon mb-3">
+                    {tech.icon}
+                  </div>
+                  <h4 className="card-title mb-2 text-light">{tech.name}</h4>
+                  <p className="card-text text-light-gray flex-grow-1">{tech.description}</p>
+                  <div className="mt-auto">
+                    <Badge bg={tech.status === "Production" ? "success" : 
+                              tech.status === "Testing" ? "warning" : "info"}>
+                      {tech.status}
+                    </Badge>
                   </div>
                 </div>
-              </Col>
-            </Row>
-          </Container>
-        </section>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </section>
 
         {/* CTA Section for Members */}
         {connected && isMember && (
@@ -675,9 +713,9 @@ function Home() {
                   variant="success" 
                   size="lg" 
                   onClick={becomeMember}
-                  className="me-3"
+                  className="me-3 "
                 >
-                  Become a Member
+                  Become a Voter
                 </Button>
               ) : (
                 <Link to="/votes">

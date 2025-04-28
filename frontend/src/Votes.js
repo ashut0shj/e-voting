@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { Button, Card, ListGroup, Alert, Spinner, ProgressBar, Form, InputGroup, Badge, Row, Col, Tooltip, OverlayTrigger, Container } from "react-bootstrap";
+import { Button, Card, Alert, Spinner, ProgressBar, Form, InputGroup, Badge, Row, Col, Tooltip, OverlayTrigger, Container } from "react-bootstrap";
 import { AppContext } from "./App";
 
 const Votes = () => {
@@ -230,7 +230,7 @@ const Votes = () => {
     }
     
     if (!isMember) {
-      alert("You need to become a member first");
+      alert("You need to register as a voter first");
       return;
     }
     
@@ -922,7 +922,7 @@ const Votes = () => {
                           {!isMember && !votingEnded && (
                             <Alert variant="info" className="mb-0 mt-3">
                               <i className="bi bi-info-circle-fill me-2"></i>
-                              You need to become a member to participate in voting
+                              You need to become a voter to participate in voting
                             </Alert>
                           )}
                         </Card.Body>
