@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppContext } from "./App";
-import { Container, Row, Col, Button, Alert, Spinner, Card, Badge, ProgressBar } from "react-bootstrap";
+import { Container, Row, Col, Button, Alert, Spinner, Card, Badge } from "react-bootstrap";
 import { 
   ShieldLockFill, CheckCircleFill, PeopleFill, FileTextFill,
   GraphUpArrow, LightningFill, GearFill, ArrowRightCircleFill,
