@@ -102,12 +102,8 @@ const Votes = () => {
   }, [votes]);
 
   useEffect(() => {
-    const fetchVotes = async () => {
-      if (!contract || !connected) {
-        setLoading(false);
-        return;
-      }
 
+    
       try {
         setLoading(true);
         setError(null);
@@ -122,21 +118,22 @@ const Votes = () => {
             if (voteData && voteData[0] && voteData[0] !== "") {
               let hasVoted = false;
               
-              if (signer) {
-                const address = await signer.getAddress();
-                hasVoted = await contract.didVote(address, i);
-              }
-              
               let ipfsData = null;
               try {
-                ipfsData = await fetchIPFSData(voteData[0]);
+                const fullIpfsData = await fetchIPFSData(voteData[0]);
+                console.log(`Full IPFS data for vote ${i}:`, fullIpfsData);
+                
+                // Only pick 'description' and 'options' fields
+                ipfsData = {
+                  description: fullIpfsData.description,
+                  options: fullIpfsData.options
+                };
+                
               } catch (ipfsError) {
                 console.error(`Failed to fetch IPFS data for vote ${i}:`, ipfsError);
               }
               
               const endTimeSeconds = Number(voteData[3]);
-              
-              // Convert to milliseconds for consistent handling
               const endTimeMs = endTimeSeconds * 1000;
               
               votesData.push({
@@ -165,6 +162,7 @@ const Votes = () => {
         setLoading(false);
       }
     };
+    
 
     if (connected && contract) {
       fetchVotes();
