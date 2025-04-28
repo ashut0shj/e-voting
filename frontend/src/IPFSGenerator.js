@@ -138,16 +138,7 @@ const IPFSGenerator = () => {
   
 
 
-  if (!isMember) {
-    return (
-      <div className="text-center my-5">
-        <Alert variant="warning">
-          <i className="bi bi-shield-lock me-2"></i>
-          You need to become a member to generate vote metadata
-        </Alert>
-      </div>
-    );
-  }
+
   
   return (
     <div className="my-4">

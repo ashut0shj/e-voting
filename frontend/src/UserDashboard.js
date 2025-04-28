@@ -93,15 +93,7 @@ const UserDashboard = () => {
 
 
 
-  if (!isMember) {
-    return (
-      <div className="text-center my-5">
-        <Alert variant="warning">
-          You need to become a member to have a dashboard
-        </Alert>
-      </div>
-    );
-  }
+
 
   if (loading) {
     return (
