@@ -1,18 +1,13 @@
-import { useState, useEffect, useContext } from "react";
-import { Button, Card, Alert, Spinner, ProgressBar, Form, InputGroup, Badge, Row, Col, Tooltip, OverlayTrigger, Container } from "react-bootstrap";
-import { AppContext } from "./App";
+import { useState, useEffect } from "react";
 
-const Votes = () => {
-  const { contract, connected, isMember, signer } = useContext(AppContext);
+const VotingDemo = () => {
   const [votes, setVotes] = useState([]);
   const [filteredVotes, setFilteredVotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [votingInProgress, setVotingInProgress] = useState({});
-  const [timeRemaining, setTimeRemaining] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all"); // "all", "active", "ended"
   const [animateElements, setAnimateElements] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState({});
 
   // Add animation trigger
   useEffect(() => {
@@ -21,31 +16,78 @@ const Votes = () => {
     }, 100);
   }, []);
 
-  const fetchIPFSData = async (uri) => {
-    try {
-      let url = "ipfs/bafkreibir7xn4yxx5vfxkd6eqkilky2bglv5qzae72iorhy4tqnnxbhxey";
-      if (uri.startsWith("ipfs/")) {
-        const cid = uri.replace("ipfs/", "");
-        url = `https://gateway.pinata.cloud/ipfs/${cid}`;
-      } else if (uri.startsWith("https://")) {
-        url = uri;
-      } else {
-        url = `https://gateway.pinata.cloud/ipfs/${uri}`;
+  // Mock vote data for demo purposes
+  useEffect(() => {
+    const mockData = [
+      {
+        id: 1,
+        owner: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        description: "How will I live?",
+        options: ["I won't", "Ice cream", "Nahhh", "Mehhh"],
+        votes: [12, 24, 8, 16],
+        endTime: Date.now() + 172800000, // 2 days from now
+        ipfsData: {
+          description: "How will I live?",
+          options: ["I won't", "Ice cream", "Nahhh", "Mehhh"]
+        }
+      },
+      {
+        id: 2,
+        owner: "0x3A56af46CC06dAA1B670a514F7c77B5180cc3Ff5",
+        description: "What is the best breakfast?",
+        options: ["Bread", "Eggs", "Poha", "Fruit"],
+        votes: [18, 35, 22, 15],
+        endTime: Date.now() + 86400000, // 1 day from now
+        ipfsData: {
+          description: "What is the best breakfast?",
+          options: ["Bread", "Eggs", "Poha", "Fruit"]
+        }
+      },
+      {
+        id: 3,
+        owner: "0x9A67F1940164d0318612b497E8e6038f902a00a4",
+        description: "Which programming language is best for beginners?",
+        options: ["Python", "JavaScript", "Go", "Ruby"],
+        votes: [45, 28, 12, 9],
+        endTime: Date.now() - 86400000, // 1 day ago (ended)
+        ipfsData: {
+          description: "Which programming language is best for beginners?",
+          options: ["Python", "JavaScript", "Go", "Ruby"]
+        }
+      },
+      {
+        id: 4,
+        owner: "0x1B67F1940164d0318612b497E8e6038f902a00a4",
+        description: "Should remote work be the new normal?",
+        options: ["Yes, for all industries", "Only for tech", "Hybrid model", "No, in-person is better"],
+        votes: [25, 18, 42, 7],
+        endTime: Date.now() + 345600000, // 4 days from now
+        ipfsData: {
+          description: "Should remote work be the new normal?",
+          options: ["Yes, for all industries", "Only for tech", "Hybrid model", "No, in-person is better"]
+        }
+      },
+      {
+        id: 5,
+        owner: "0xAC88F1940164d0318612b497E8e6038f902a00a4",
+        description: "Which blockchain has the best developer experience?",
+        options: ["Ethereum", "Solana", "Polkadot", "Cardano"],
+        votes: [31, 26, 14, 19],
+        endTime: Date.now() - 172800000, // 2 days ago (ended)
+        ipfsData: {
+          description: "Which blockchain has the best developer experience?",
+          options: ["Ethereum", "Solana", "Polkadot", "Cardano"]
+        }
       }
+    ];
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`IPFS fetch failed: ${response.statusText}`);
-      }
-      return await response.json();
-    } catch (err) {
-      console.error("Error fetching IPFS data:", err);
-      return null;
-    }
-  };
+    setVotes(mockData);
+    setFilteredVotes(mockData);
+    setLoading(false);
+  }, []);
 
   const formatTimeRemaining = (endTime) => {
-    const now = Math.floor(Date.now() / 1000) * 1000; // Round to nearest second
+    const now = Date.now();
     
     if (endTime <= now) {
       return { text: "Voting ended", ended: true };
@@ -101,74 +143,6 @@ const Votes = () => {
     return () => clearInterval(intervalId);
   }, [votes]);
 
-  useEffect(() => {
-    const fetchVotes = async () => {
-
-    
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const votesData = [];
-        const maxVoteId = 30;
-        
-        for (let i = 0; i < maxVoteId; i++) {
-          try {
-            const voteData = await contract.getVote(i);
-            
-            if (voteData && voteData[0] && voteData[0] !== "") {
-              let hasVoted = false;
-              
-              let ipfsData = null;
-              try {
-                const fullIpfsData = await fetchIPFSData(voteData[0]);
-                console.log(`Full IPFS data for vote ${i}:`, fullIpfsData);
-                
-                // Only pick 'description' and 'options' fields
-                ipfsData = {
-                  description: fullIpfsData.description,
-                  options: fullIpfsData.options
-                };
-                
-              } catch (ipfsError) {
-                console.error(`Failed to fetch IPFS data for vote ${i}:`, ipfsError);
-              }
-              
-              const endTimeSeconds = Number(voteData[3]);
-              const endTimeMs = endTimeSeconds * 1000;
-              
-              votesData.push({
-                id: i,
-                uri: voteData[0],
-                owner: voteData[1],
-                votes: voteData[2].map(v => Number(v)),
-                endTime: endTimeMs,
-                hasVoted: hasVoted,
-                ipfsData: ipfsData 
-              });
-            }
-          } catch (err) {
-            console.log(`Vote ${i} doesn't exist or can't be fetched`);
-          }
-        }
-        
-        votesData.sort((a, b) => b.id - a.id);
-        
-        setVotes(votesData);
-        setFilteredVotes(votesData);
-      } catch (err) {
-        console.error("Error fetching votes:", err);
-        setError("Failed to load votes: " + err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-
-
-    fetchVotes();
-  }, [contract, connected, signer]);
-
   // Filter and search functionality
   useEffect(() => {
     let filtered = [...votes];
@@ -189,97 +163,25 @@ const Votes = () => {
           return true;
         }
         
-        // Search by URI
-        if (vote.uri.toLowerCase().includes(lowercasedSearch)) {
-          return true;
-        }
-        
         // Search by owner address
         if (vote.owner.toLowerCase().includes(lowercasedSearch)) {
           return true;
         }
         
-        // Search by IPFS data description if available
-        if (vote.ipfsData && vote.ipfsData.description && 
-            vote.ipfsData.description.toLowerCase().includes(lowercasedSearch)) {
+        // Search by description
+        if (vote.description.toLowerCase().includes(lowercasedSearch)) {
           return true;
         }
         
-        // Search by options if available
-        if (vote.ipfsData && vote.ipfsData.options) {
-          return vote.ipfsData.options.some(option => 
-            option.toLowerCase().includes(lowercasedSearch)
-          );
-        }
-        
-        return false;
+        // Search by options
+        return vote.options.some(option => 
+          option.toLowerCase().includes(lowercasedSearch)
+        );
       });
     }
     
     setFilteredVotes(filtered);
   }, [searchTerm, votes, filterStatus]);
-
-  const handleVote = async (voteId, option) => {
-    if (!contract) {
-      alert("Please connect to MetaMask first");
-      return;
-    }
-    
-    if (!isMember) {
-      alert("You need to register as a voter first");
-      return;
-    }
-    
-    setVotingInProgress(prev => ({
-      ...prev,
-      [`${voteId}-${option}`]: true
-    }));
-
-    try {
-      const vote = votes.find(v => v.id === voteId);
-      if (vote && vote.endTime < Date.now()) {
-        alert("Voting has ended for this proposal");
-        return;
-      }
-
-      if (signer) {
-        const address = await signer.getAddress();
-        const hasVoted = await contract.didVote(address, voteId);
-        
-        if (hasVoted) {
-          alert("You have already voted on this proposal");
-          return;
-        }
-      }
-
-      const tx = await contract.vote(voteId, option);
-      await tx.wait(); 
-      
-      alert("Vote cast successfully!");
-      
-      const voteData = await contract.getVote(voteId);
-      const updatedVotes = [...votes];
-      const voteIndex = updatedVotes.findIndex(v => v.id === voteId);
-      
-      if (voteIndex !== -1) {
-        updatedVotes[voteIndex] = {
-          ...updatedVotes[voteIndex],
-          votes: voteData[2].map(v => Number(v)),
-          hasVoted: true
-        };
-        setVotes(updatedVotes);
-      }
-    } catch (err) {
-      console.error("Error voting:", err);
-      alert("Failed to vote: " + err.message);
-    } finally {
-      // Clear voting in progress state
-      setVotingInProgress(prev => ({
-        ...prev,
-        [`${voteId}-${option}`]: false
-      }));
-    }
-  };
 
   const calculateTotalVotes = (voteArray) => {
     return voteArray.reduce((total, count) => total + count, 0);
@@ -291,658 +193,299 @@ const Votes = () => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
-  return (
-    <>
-      {/* Custom CSS for votes page */}
-      <style>
-        {`
-          .vote-card {
-            border-radius: 16px;
-            overflow: hidden;
-            border: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: rgba(30, 30, 40, 0.8);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 1.5rem;
-          }
-          
-          .vote-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-          
-          .vote-header {
-            background: linear-gradient(90deg, rgba(55, 55, 75, 0.7), rgba(35, 35, 55, 0.7));
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 1.25rem;
-          }
-          
-          .vote-body {
-            padding: 1.5rem;
-          }
-          
-          .vote-option {
-            background-color: rgba(25, 25, 35, 0.5);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-          }
-          
-          .vote-option:hover {
-            background-color: rgba(35, 35, 45, 0.7);
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-          
-          .vote-option.winning {
-            border-color: rgba(25, 135, 84, 0.5);
-            background-color: rgba(25, 135, 84, 0.1);
-          }
-          
-          .vote-option::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-          }
-          
-          .vote-option:hover::before {
-            opacity: 1;
-          }
-          .progress {
-  height: 10px;
-  border-radius: 5px;
-  background-color: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-}
-
-.progress-bar {
-  border-radius: 5px;
-  transition: width 0.4s ease;
-}
-
-.progress-simple .progress-bar {
-  background-color: var(--primary); /* Use a single color */
-  background-image: none; /* Remove pattern */
-  animation: none; /* Remove animation */
-}
-
-.progress-vote-count {
-  position: absolute;
-  right: 10px;
-  top: -5px;
-  font-size: 0.75rem;
-  color: var(--light);
-}
-          
-          .vote-button {
-            border-radius: 50px;
-            padding: 0.4rem 1.2rem;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          }
-          
-          .vote-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-          }
-          
-          .vote-button:active {
-            transform: translateY(0);
-          }
-          
-          .search-container {
-            background: rgba(30, 30, 40, 0.6);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-          }
-          
-          .filter-badges .badge {
-            cursor: pointer;
-            margin-right: 0.5rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-            border-radius: 50px;
-            transition: all 0.2s ease;
-            opacity: 0.7;
-            border: 1px solid transparent;
-          }
-          
-          .filter-badges .badge:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-          }
-          
-          .filter-badges .badge.active {
-            opacity: 1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-          
-          .search-input {
-            background-color: rgba(20, 20, 30, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-          }
-          
-          .search-input:focus {
-            background-color: rgba(30, 30, 40, 0.8);
-            border-color: rgba(105, 65, 198, 0.6);
-            box-shadow: 0 0 0 0.25rem rgba(105, 65, 198, 0.25);
-          }
-          
-          .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-          }
-          
-          .section-header {
-            position: relative;
-            margin-bottom: 2.5rem;
-            padding-bottom: 1rem;
-          }
-          
-          .section-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, #6941c6, #9d66ff);
-            border-radius: 2px;
-          }
-          
-          .vote-meta {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          }
-          
-          .vote-meta-item {
-            display: flex;
-            align-items: center;
-            margin-right: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-          }
-          
-          .vote-meta-item svg,
-          .vote-meta-item i {
-            margin-right: 0.5rem;
-            color: rgba(255, 255, 255, 0.5);
-          }
-          
-          .votes-empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: rgba(30, 30, 40, 0.6);
-            border-radius: 16px;
-            margin-top: 2rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-          }
-          
-          .votes-empty-icon {
-            font-size: 3.5rem;
-            color: rgba(105, 65, 198, 0.7);
-            margin-bottom: 1.5rem;
-          }
-          
-          .winner-badge {
-            position: absolute;
-            top: -10px;
-            left: 10px;
-            z-index: 10;
-            padding: 0.35rem 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-          }
-          
-          .progress-vote-count {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: bold;
-            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-          }
-          
-          .pulse-animation {
-            animation: pulse 2s infinite;
-          }
-          
-          @keyframes pulse {
-            0% {
-              opacity: 0.6;
-            }
-            50% {
-              opacity: 1;
-            }
-            100% {
-              opacity: 0.6;
-            }
-          }
-          
-          .vote-card-glow {
-            position: absolute;
-            bottom: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle at center, rgba(105, 65, 198, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: 0;
-            pointer-events: none;
-          }
-          
-          .animate-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-          }
-          
-          .animate-in.show {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          
-          .animate-in-delay-1 {
-            transition-delay: 0.2s;
-          }
-          
-          .animate-in-delay-2 {
-            transition-delay: 0.4s;
-          }
-          
-          .animate-in-delay-3 {
-            transition-delay: 0.6s;
-          }
-          
-          .badge {
-            padding: 0.5rem 0.75rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-          }
-          
-          .page-title {
-            background: linear-gradient(90deg, #fff, #d9c8ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
-          }
-          
-          .vote-header h4 {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-          }
-          
-          @media (max-width: 768px) {
-            .vote-meta {
-              flex-direction: column;
-              align-items: flex-start;
-            }
-            
-            .vote-meta-item {
-              margin-bottom: 0.5rem;
-            }
-          }
-        `}
-      </style>
-
-      <div className="particle-container"></div>
+  // Function to simulate voting (just visual feedback for demo)
+  const simulateVote = (voteId, optionIndex) => {
+    const updatedVotes = [...votes];
+    const voteIndex = updatedVotes.findIndex(v => v.id === voteId);
+    
+    if (voteIndex !== -1) {
+      // Create a copy of the votes array for the specific vote
+      const newVotesArray = [...updatedVotes[voteIndex].votes];
+      // Increment the vote count for the selected option
+      newVotesArray[optionIndex] += 1;
       
-      <Container className="py-5">
-        <div className={`section-header animate-in ${animateElements ? 'show' : ''}`}>
-          <Badge bg="primary" className="mb-2">Blockchain Governance</Badge>
-          <h2 className="page-title display-5 mb-2">Community Voting</h2>
-          <p className="text-light opacity-75">Participate in transparent and secure voting on the Ethereum blockchain</p>
+      // Update the vote in our state
+      updatedVotes[voteIndex] = {
+        ...updatedVotes[voteIndex],
+        votes: newVotesArray
+      };
+      
+      setVotes(updatedVotes);
+      
+      // Show visual feedback
+      alert("Vote simulated! (This is just a frontend demo)");
+    }
+  };
+
+  return (
+    <div className="bg-gray-900 min-h-screen text-white">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className={`mb-12 animate-in ${animateElements ? 'show' : ''}`}>
+          <span className="inline-block bg-blue-600 text-white text-sm font-semibold px-3 py-1 rounded-full mb-2">Blockchain Governance</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">Community Voting</h1>
+          <p className="text-gray-300 opacity-75">Participate in transparent and secure voting on the blockchain</p>
         </div>
         
-        {!connected ? (
-          <div className={`votes-empty-state animate-in ${animateElements ? 'show' : ''}`}>
-            <div className="votes-empty-icon">
-              <i className="bi bi-lock-fill"></i>
-            </div>
-            <h4>Connect Your Wallet to Vote</h4>
-            <p className="text-light opacity-75 mb-4">
-              Connect your Ethereum wallet to view active proposals and participate in voting
-            </p>
-          </div>
-        ) : loading ? (
-          <div className={`text-center my-5 animate-in ${animateElements ? 'show' : ''}`}>
-            <div className="mb-4">
-              <Spinner animation="border" role="status" style={{ width: '3rem', height: '3rem' }} className="text-primary">
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-            </div>
-            <h5 className="text-light opacity-75">Loading votes from blockchain...</h5>
-          </div>
-        ) : error ? (
-          <div className={`animate-in ${animateElements ? 'show' : ''}`}>
-            <Alert variant="danger" className="d-flex align-items-center">
-              <div className="me-3 fs-3">
-                <i className="bi bi-x-circle-fill"></i>
+        {/* Search and Filter Section */}
+        <div className={`bg-gray-800 bg-opacity-60 rounded-xl p-6 mb-8 shadow-lg backdrop-blur-md border border-gray-700 animate-in ${animateElements ? 'show' : ''}`}>
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  className="bg-gray-900 bg-opacity-60 text-white pl-10 pr-4 py-3 w-full rounded-lg border border-gray-700 focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-25"
+                  placeholder="Search by title, options, or creator address..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setSearchTerm("")}
+                  >
+                    <svg className="w-5 h-5 text-gray-400 hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+                    </svg>
+                  </button>
+                )}
               </div>
-              <div>
-                <h5>Error Loading Votes</h5>
-                <p className="mb-2">{error}</p>
-                <Button 
-                  variant="outline-light" 
-                  className="mt-2" 
-                  onClick={() => window.location.reload()}
-                >
-                  <i className="bi bi-arrow-clockwise me-2"></i> Try Again
-                </Button>
-              </div>
-            </Alert>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button 
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterStatus === "all" ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                onClick={() => setFilterStatus("all")}
+              >
+                All Votes
+              </button>
+              <button 
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterStatus === "active" ? 'bg-green-600 text-white shadow-md' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                onClick={() => setFilterStatus("active")}
+              >
+                Active Votes
+              </button>
+              <button 
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${filterStatus === "ended" ? 'bg-red-600 text-white shadow-md' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                onClick={() => setFilterStatus("ended")}
+              >
+                Ended Votes
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Votes Display */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        ) : filteredVotes.length === 0 ? (
+          <div className={`bg-gray-800 bg-opacity-60 rounded-xl p-12 text-center shadow-lg backdrop-blur-md border border-gray-700 animate-in ${animateElements ? 'show' : ''}`}>
+            <div className="text-5xl text-purple-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No Matches Found</h3>
+            <p className="text-gray-400 mb-6">No votes match your current search criteria</p>
+            <button 
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterStatus("all");
+              }}
+            >
+              Reset Filters
+            </button>
           </div>
         ) : (
-          <>
-            {/* Search and Filter Section */}
-            <div className={`search-container animate-in ${animateElements ? 'show' : ''}`}>
-              <Row className="align-items-center">
-                <Col lg={6} className="mb-3 mb-lg-0">
-                  <InputGroup className="mb-3">
-                    <InputGroup.Text className="bg-dark border-0">
-                      <i className="bi bi-search"></i>
-                    </InputGroup.Text>
-                    <Form.Control
-                      placeholder="Search by title, options, or creator address..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="search-input"
-                    />
-                    {searchTerm && (
-                      <Button 
-                        variant="outline-secondary" 
-                        onClick={() => setSearchTerm("")}
-                      >
-                        <i className="bi bi-x-circle-fill"></i>
-                      </Button>
-                    )}
-                  </InputGroup>
-                </Col>
-                <Col lg={6}>
-                  <div className="filter-badges">
-                    <Badge 
-                      bg={filterStatus === "all" ? "primary" : "dark"} 
-                      className={`${filterStatus === "all" ? 'active' : ''}`}
-                      onClick={() => setFilterStatus("all")}
-                    >
-                      <i className="bi bi-filter-circle-fill me-1"></i> All Votes
-                    </Badge>
-                    <Badge 
-                      bg={filterStatus === "active" ? "success" : "dark"} 
-                      className={`${filterStatus === "active" ? 'active' : ''}`}
-                      onClick={() => setFilterStatus("active")}
-                    >
-                      <i className="bi bi-unlock-fill me-1"></i> Active Votes
-                    </Badge>
-                    <Badge 
-                      bg={filterStatus === "ended" ? "danger" : "dark"} 
-                      className={`${filterStatus === "ended" ? 'active' : ''}`}
-                      onClick={() => setFilterStatus("ended")}
-                    >
-                      <i className="bi bi-lock-fill me-1"></i> Ended Votes
-                    </Badge>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-            
-            {/* Votes Display */}
-            {votes.length === 0 ? (
-              <div className={`votes-empty-state animate-in animate-in-delay-1 ${animateElements ? 'show' : ''}`}>
-                <div className="votes-empty-icon">
-                  <i className="bi bi-info-circle-fill"></i>
-                </div>
-                <h4>No Votes Available</h4>
-                <p className="text-light opacity-75 mb-4">
-                  Be the first to create a vote for the community!
-                </p>
-              </div>
-            ) : filteredVotes.length === 0 ? (
-              <div className={`votes-empty-state animate-in animate-in-delay-1 ${animateElements ? 'show' : ''}`}>
-                <div className="votes-empty-icon">
-                  <i className="bi bi-search"></i>
-                </div>
-                <h4>No Matches Found</h4>
-                <p className="text-light opacity-75 mb-4">
-                  No votes match your current search criteria
-                </p>
-                <Button 
-                  variant="outline-primary" 
-                  onClick={() => {
-                    setSearchTerm("");
-                    setFilterStatus("all");
-                  }}
+          <div className="space-y-6">
+            {filteredVotes.map((vote, voteIndex) => {
+              const votingEnded = vote.endTime < Date.now();
+              const totalVotes = calculateTotalVotes(vote.votes);
+              const remaining = timeRemaining[vote.id] || formatTimeRemaining(vote.endTime);
+              const winningOptionIndex = vote.votes.indexOf(Math.max(...vote.votes));
+              
+              return (
+                <div 
+                  key={vote.id} 
+                  className={`bg-gray-800 bg-opacity-80 rounded-xl overflow-hidden shadow-lg border border-gray-700 relative animate-in animate-in-delay-${voteIndex % 3 + 1} ${animateElements ? 'show' : ''}`}
                 >
-                  <i className="bi bi-arrow-clockwise me-2"></i> Reset Filters
-                </Button>
-              </div>
-            ) : (
-              <Row>
-                {filteredVotes.map((vote, voteIndex) => {
-                  const votingEnded = vote.endTime < Date.now();
-                  const totalVotes = calculateTotalVotes(vote.votes);
-                  const remaining = timeRemaining[vote.id] || formatTimeRemaining(vote.endTime);
-                  const winningOptionIndex = vote.votes.indexOf(Math.max(...vote.votes));
+                  <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-purple-600 opacity-10 blur-2xl pointer-events-none"></div>
                   
-                  return (
-                    <Col lg={12} key={vote.id}>
-                      <Card className={`vote-card position-relative animate-in animate-in-delay-${voteIndex % 3 + 1} ${animateElements ? 'show' : ''}`}>
-                        <div className="vote-card-glow"></div>
+                  <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 p-4 md:p-5">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-center">
+                        <span className="bg-gray-900 text-gray-300 px-3 py-2 rounded-lg mr-3 text-sm font-mono">
+                          #{vote.id}
+                        </span>
+                        <h3 className="text-xl font-semibold text-white overflow-hidden text-ellipsis">
+                          {vote.description}
+                        </h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center ${votingEnded ? 'bg-red-600 bg-opacity-20 text-red-400' : 'bg-green-600 bg-opacity-20 text-green-400'}`}>
+                          {votingEnded ? (
+                            <>
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                              </svg>
+                              Voting Ended
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                              </svg>
+                              Voting Active
+                            </>
+                          )}
+                        </span>
                         
-                        <Card.Header className="vote-header">
-                          <Row className="align-items-center">
-                            <Col md={7}>
-                              <div className="d-flex align-items-center">
-                                <Badge bg="dark" className="me-3 p-2">
-                                  #{vote.id}
-                                </Badge>
-                                <h4 className="mb-0 text-light">
-                                  {vote.ipfsData && vote.ipfsData.description 
-                                    ? vote.ipfsData.description 
-                                    : `Topic: ${vote.uri}`}
-                                </h4>
+                        {!votingEnded && (
+                          <span className={`px-3 py-1 rounded-full bg-blue-600 bg-opacity-20 text-blue-400 text-sm font-medium flex items-center ${remaining.days === 0 && remaining.hours < 12 ? 'animate-pulse' : ''}`}>
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {remaining.text}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 md:p-6">
+                    <div className="flex flex-wrap gap-4 items-center pb-4 mb-4 border-b border-gray-700">
+                      <div className="flex items-center text-gray-400 text-sm">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Created by: {truncateAddress(vote.owner)}
+                      </div>
+                      
+                      <div className="flex items-center text-gray-400 text-sm">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Total Votes: <span className="font-semibold ml-1">{totalVotes}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4 mb-4">
+                      {vote.options.map((option, index) => {
+                        const count = vote.votes[index];
+                        const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                        const isWinningOption = index === winningOptionIndex && count > 0;
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className={`bg-gray-900 bg-opacity-50 rounded-lg border p-4 relative overflow-hidden transition-all ${
+                              isWinningOption 
+                                ? 'border-green-500 bg-green-900 bg-opacity-10' 
+                                : 'border-gray-700 hover:border-gray-600'
+                            }`}
+                          >
+                            {votingEnded && isWinningOption && (
+                              <span className="absolute top-0 left-4 transform -translate-y-1/2 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center">
+                                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                  <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd"></path>
+                                  <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"></path>
+                                </svg>
+                                Winner
+                              </span>
+                            )}
+                            
+                            <div className="flex justify-between mb-2">
+                              <span className="font-medium">{option}</span>
+                              <span>
+                                <strong>{count}</strong> {count === 1 ? 'vote' : 'votes'} ({percentage}%)
+                              </span>
+                            </div>
+                            
+                            <div className="relative">
+                              <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                                  style={{ width: `${percentage > 0 ? percentage : 3}%` }}
+                                ></div>
                               </div>
-                            </Col>
-                            <Col md={5} className="text-md-end mt-3 mt-md-0">
-                              <Badge 
-                                bg={votingEnded ? 'danger' : 'success'} 
-                                className="me-2 p-2"
-                              >
-                                {votingEnded 
-                                  ? <><i className="bi bi-lock-fill me-1"></i> Voting Ended</>
-                                  : <><i className="bi bi-unlock-fill me-1"></i> Voting Active</>
-                                }
-                              </Badge>
-                              
-                              {!votingEnded && (
-                                <Badge bg="info" className={`p-2 ${remaining.days === 0 && remaining.hours < 12 ? 'pulse-animation' : ''}`}>
-                                  <i className="bi bi-clock me-1"></i>
-                                  {remaining.text}
-                                </Badge>
+                              {percentage > 10 && (
+                                <span className="absolute right-0 top-0 transform translate-y-4 text-xs text-gray-400">
+                                  {percentage}%
+                                </span>
                               )}
-                            </Col>
-                          </Row>
-                        </Card.Header>
-                        
-                        <Card.Body className="vote-body">
-                          <div className="vote-meta">
-                            <div className="vote-meta-item">
-                              <i className="bi bi-person-fill"></i>
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={<Tooltip>{vote.owner}</Tooltip>}
-                              >
-                                <span>Created by: {truncateAddress(vote.owner)}</span>
-                              </OverlayTrigger>
                             </div>
                             
-                            <div className="vote-meta-item">
-                              <i className="bi bi-check-circle-fill"></i>
-                              <span>Total Votes: <strong>{totalVotes}</strong></span>
-                            </div>
-                            
-                            {vote.hasVoted && (
-                              <Badge bg="secondary" className="p-2">
-                                <i className="bi bi-check-lg me-1"></i>
-                                You have voted
-                              </Badge>
+                            {!votingEnded && (
+                              <div className="mt-4 text-right">
+                                <button 
+                                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                  onClick={() => simulateVote(vote.id, index)}
+                                >
+                                  <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                  </svg>
+                                  Cast Vote (Demo)
+                                </button>
+                              </div>
                             )}
                           </div>
-                          
-                          <div className="mb-4 text-white">
-                          {vote.votes.map((count, index) => {
-                              const optionLabel = vote.ipfsData && vote.ipfsData.options && vote.ipfsData.options[index]
-                                ? vote.ipfsData.options[index]
-                                : `Option ${index + 1}`;
-                              
-                              const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                              const isWinningOption = index === winningOptionIndex && count > 0;
-                              
-                              return (
-                                <div 
-                                  key={index} 
-                                  className={`vote-option position-relative ${isWinningOption ? 'winning' : ''}`}
-                                >
-                                  {votingEnded && isWinningOption && (
-                                    <Badge bg="success" className="winner-badge">
-                                      <i className="bi bi-trophy-fill me-1"></i> Winner
-                                    </Badge>
-                                  )}
-                                  
-                                  <div className="d-flex justify-content-between mb-2">
-                                    <div className="fw-bold mb-1">{optionLabel}</div>
-                                    <div>
-                                      <strong>{count}</strong> {count === 1 ? 'vote' : 'votes'} ({percentage}%)
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="position-relative mb-3">
-                                    <ProgressBar 
-                                      variant="primary" 
-                                      now={percentage > 0 ? percentage : 3} 
-                                      className="mb-0 progress-simple"
-                                    />
-                                    {percentage > 10 && (
-                                      <span className="progress-vote-count">{percentage}%</span>
-                                    )}
-                                  </div>
-                                  
-                                  {!votingEnded && !vote.hasVoted && isMember && (
-                                    <div className="text-end">
-                                      <Button 
-                                        size="sm" 
-                                        variant={votingInProgress[`${vote.id}-${index}`] ? "outline-secondary" : "outline-primary"}
-                                        onClick={() => handleVote(vote.id, index)}
-                                        disabled={votingInProgress[`${vote.id}-${index}`]}
-                                        className="vote-button"
-                                      >
-                                        {votingInProgress[`${vote.id}-${index}`] ? (
-                                          <>
-                                            <Spinner
-                                              as="span"
-                                              animation="border"
-                                              size="sm"
-                                              role="status"
-                                              aria-hidden="true"
-                                              className="me-1"
-                                            />
-                                            Voting...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <i className="bi bi-check-circle-fill me-1"></i>
-                                            Cast Vote
-                                          </>
-                                        )}
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                          
-                          {votingEnded && totalVotes > 0 && winningOptionIndex !== -1 && (
-                            <Alert variant="success" className="d-flex align-items-center mb-0">
-                              <div className="me-3 fs-4">
-                                <i className="bi bi-trophy-fill"></i>
-                              </div>
-                              <div>
-                                <strong>Final Result:</strong> {
-                                  vote.ipfsData && vote.ipfsData.options && vote.ipfsData.options[winningOptionIndex]
-                                    ? vote.ipfsData.options[winningOptionIndex]
-                                    : `Option ${winningOptionIndex + 1}`
-                                } won with {vote.votes[winningOptionIndex]} {vote.votes[winningOptionIndex] === 1 ? 'vote' : 'votes'} 
-                                ({Math.round((vote.votes[winningOptionIndex] / totalVotes) * 100)}%)
-                              </div>
-                            </Alert>
-                          )}
-                          
-                          {!isMember && !votingEnded && (
-                            <Alert variant="info" className="mb-0 mt-3">
-                              <i className="bi bi-info-circle-fill me-2"></i>
-                              You need to become a voter to participate in voting
-                            </Alert>
-                          )}
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  );
-                })}
-              </Row>
-            )}
-            
-            {/* Load More Button (optional, if needed) */}
-            {filteredVotes.length > 0 && filteredVotes.length >= 5 && (
-              <div className={`text-center mt-4 animate-in animate-in-delay-3 ${animateElements ? 'show' : ''}`}>
-                <Button variant="outline-light" className="px-4 py-2">
-                  <i className="bi bi-arrow-down-circle me-2"></i>
-                  Load More Votes
-                </Button>
-              </div>
-            )}
-          </>
+                        );
+                      })}
+                    </div>
+                    
+                    {votingEnded && totalVotes > 0 && winningOptionIndex !== -1 && (
+                      <div className="bg-green-900 bg-opacity-20 border border-green-500 text-green-300 rounded-lg p-4 flex items-start">
+                        <svg className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-1 1h1zm3 0a1 1 0 10-1-1v1h1z" clipRule="evenodd"></path>
+                          <path d="M9 11H3v5a2 2 0 002 2h4v-7zM11 18h4a2 2 0 002-2v-5h-6v7z"></path>
+                        </svg>
+                        <div>
+                          <span className="font-semibold">Final Result:</span> {vote.options[winningOptionIndex]} won with {vote.votes[winningOptionIndex]} {vote.votes[winningOptionIndex] === 1 ? 'vote' : 'votes'} 
+                          ({Math.round((vote.votes[winningOptionIndex] / totalVotes) * 100)}%)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </Container>
-    </>
+      </div>
+      
+      {/* Custom CSS for animations */}
+      <style jsx global>{`
+        .animate-in {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .animate-in.show {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        
+        .animate-in-delay-1 {
+          transition-delay: 0.2s;
+        }
+        
+        .animate-in-delay-2 {
+          transition-delay: 0.4s;
+        }
+        
+        .animate-in-delay-3 {
+          transition-delay: 0.6s;
+        }
+      `}</style>
+    </div>
   );
 };
 
-export default Votes;
+export default VotingDemo;
