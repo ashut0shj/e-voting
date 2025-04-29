@@ -36,7 +36,7 @@ contract Voting {
     );
 
     modifier isMember() {
-        require(members[msg.sender], "You are not a member, fuckoff");
+        require(members[msg.sender], "You are not a member");
         _;
     }
 

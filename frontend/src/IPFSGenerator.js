@@ -179,7 +179,7 @@ const IPFSGenerator = () => {
             Successfully uploaded to IPFS!
           </Card.Header>
           <Card.Body>
-            <div className="mb-3">
+            <div className="mb-3 text-white">
               <h5>IPFS Hash:</h5>
               <InputGroup>
                 <Form.Control
@@ -205,12 +205,12 @@ const IPFSGenerator = () => {
                   </Button>
                 </OverlayTrigger>
               </InputGroup>
-              <Form.Text className="text-muted">
+              <Form.Text className="text-white-60">
                 Use this IPFS hash as the URI when creating your vote.
               </Form.Text>
             </div>
             
-            <div className="mb-3">
+            <div className="mb-3 text-white">
               <h5>IPFS URI Format:</h5>
               <InputGroup>
                 <Form.Control
@@ -236,7 +236,7 @@ const IPFSGenerator = () => {
                   </Button>
                 </OverlayTrigger>
               </InputGroup>
-              <Form.Text className="text-muted">
+              <Form.Text className="text-white-60">
                 This is the formatted URI you can directly use in the create vote form.
               </Form.Text>
             </div>

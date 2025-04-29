@@ -13,7 +13,7 @@ const NavBar = () => {
   return (
     <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
       <Container fluid>
-        <Navbar.Brand as={Link} to="/">Voting App</Navbar.Brand>
+        <Navbar.Brand as={Link} to="/">Ballot-Block</Navbar.Brand>
         <Navbar.Toggle aria-controls="navbar-nav" />
         <Navbar.Collapse id="navbar-nav">
           <Nav className="me-auto">
