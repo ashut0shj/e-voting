@@ -1,10 +1,10 @@
 {
-    "description": "how will i live?",
+    "description": "Which of these is your favorite dessert?",
     "options": [
-      "i won’t",
       "ice cream",
-      "nahhh",
-      "mehhh"
+      "cake",
+      "pie",
+      "cookies"
     ]
   }
   
