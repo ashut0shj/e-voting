@@ -38,7 +38,7 @@ cd backend
 npx hardhat run scripts/deploy.js --network localhost
 ```
 
-This deploys your smart contract to the local blockchain.
+This deploys your smart contract to the local blockchain
 
 ### Terminal 3: Start React Frontend
 ```bash
